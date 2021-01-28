@@ -62,6 +62,11 @@ module ESM
       line=__LINE__, &
       file=__FILE__)) &
       return  ! bail out
+    call NUOPC_CompAttributeSet(driver, name="Profiling", value="high", rc=rc)
+    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, &
+      file=__FILE__)) &
+      return  ! bail out
 
   end subroutine
 
@@ -111,19 +116,34 @@ module ESM
     do i=1, petCount/2
       petList(i) = i-1 ! PET labeling goes from 0 to petCount-1
     enddo
-    call ESMF_InfoSet(info, key="/NUOPC/Hint/PePerPet/MaxCount", value=2, &
+    call ESMF_InfoSet(info, key="/NUOPC/Hint/PePerPet/MaxCount", value=4, &
       rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) &
       return  ! bail out
-    call NUOPC_DriverAddComp(driver, "ATM", atmSS, atmSVM, info=info, &
-      petList=petList, comp=child, rc=rc)
+#if 0
+    call ESMF_InfoSet(info, key="/NUOPC/Hint/PePerPet/OpenMpNumThreads", &
+      value=1, rc=rc)
+    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, &
+      file=__FILE__)) &
+      return  ! bail out
+#endif
+    call NUOPC_DriverAddComp(driver, "ATM", atmSS, &
+      atmSVM, info=info, &
+!      petList=petList, &
+      comp=child, rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) &
       return  ! bail out
     call NUOPC_CompAttributeSet(child, name="Verbosity", value="high", rc=rc)
+    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, &
+      file=__FILE__)) &
+      return  ! bail out
+    call NUOPC_CompAttributeSet(child, name="Profiling", value="high", rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) &
@@ -195,24 +215,40 @@ module ESM
 #endif
 #endif
 
+#if 1
     ! SetServices for OCN with petList on second half of PETs
     allocate(petList(petCount/2))
     do i=1, petCount/2
       petList(i) = petCount/2 + i-1 ! PET labeling goes from 0 to petCount-1
     enddo
-    call ESMF_InfoSet(info, key="/NUOPC/Hint/PePerPet/MaxCount", value=2, &
+    call ESMF_InfoSet(info, key="/NUOPC/Hint/PePerPet/MaxCount", value=4, &
       rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) &
       return  ! bail out
-    call NUOPC_DriverAddComp(driver, "OCN", ocnSS, ocnSVM, info=info, &
-      petList=petList, comp=child, rc=rc)
+#if 0
+    call ESMF_InfoSet(info, key="/NUOPC/Hint/PePerPet/OpenMpNumThreads", &
+      value=1, rc=rc)
+    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, &
+      file=__FILE__)) &
+      return  ! bail out
+#endif
+    call NUOPC_DriverAddComp(driver, "OCN", ocnSS, &
+      ocnSVM, info=info, &
+!      petList=petList, &
+      comp=child, rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) &
       return  ! bail out
     call NUOPC_CompAttributeSet(child, name="Verbosity", value="high", rc=rc)
+    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, &
+      file=__FILE__)) &
+      return  ! bail out
+    call NUOPC_CompAttributeSet(child, name="Profiling", value="high", rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) &
@@ -262,7 +298,9 @@ module ESM
       line=__LINE__, &
       file=__FILE__)) &
       return  ! bail out
+#endif
 
+#if 1
     ! SetServices for atm2ocn
     call NUOPC_DriverAddComp(driver, srcCompLabel="ATM", dstCompLabel="OCN", &
       compSetServicesRoutine=cplSS, comp=connector, rc=rc)
@@ -271,6 +309,11 @@ module ESM
       file=__FILE__)) &
       return  ! bail out
     call NUOPC_CompAttributeSet(connector, name="Verbosity", value="high", rc=rc)
+    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, &
+      file=__FILE__)) &
+      return  ! bail out
+    call NUOPC_CompAttributeSet(connector, name="Profiling", value="high", rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) &
@@ -288,6 +331,12 @@ module ESM
       line=__LINE__, &
       file=__FILE__)) &
       return  ! bail out
+    call NUOPC_CompAttributeSet(connector, name="Profiling", value="high", rc=rc)
+    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, &
+      file=__FILE__)) &
+      return  ! bail out
+#endif
 
     ! set the driver clock
     call ESMF_TimeIntervalSet(timeStep, m=15, rc=rc) ! 15 minute steps
@@ -303,7 +352,7 @@ module ESM
       file=__FILE__)) &
       return  ! bail out
 
-    call ESMF_TimeSet(stopTime, yy=2010, mm=6, dd=1, h=1, m=0, &
+    call ESMF_TimeSet(stopTime, yy=2010, mm=6, dd=1, h=2, m=0, &
       calkindflag=ESMF_CALKIND_GREGORIAN, rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &

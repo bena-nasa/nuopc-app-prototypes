@@ -86,7 +86,7 @@ module ATM
     ! Disabling the following macro, e.g. renaming to WITHIMPORTFIELDS_disable,
     ! will result in a model component that does not advertise any importable
     ! Fields. Use this if you want to drive the model independently.
-#define WITHIMPORTFIELDS
+#define WITHIMPORTFIELDS_off
 #ifdef WITHIMPORTFIELDS
     ! importable field: sea_surface_temperature
     call NUOPC_Advertise(importState, &
@@ -234,7 +234,7 @@ module ATM
 !$      "   num_threads=", omp_get_num_threads(), &
 !$      "   max_threads=", omp_get_max_threads(), &
 !$      "   num_procs=", omp_get_num_procs()
-!$    call ESMF_LogWrite(msgString, ESMF_LOGMSG_INFO, rc=rc)
+!!$    call ESMF_LogWrite(msgString, ESMF_LOGMSG_INFO, rc=rc)
 !$omp end critical
 !$omp end parallel
 
@@ -256,6 +256,8 @@ module ATM
       line=__LINE__, &
       file=__FILE__)) &
       return  ! bail out
+
+!    call ESMF_VMWTimeDelay(0.005_ESMF_KIND_R8, rc=rc)
 
     call ESMF_ClockPrint(clock, options="stopTime", &
       preString="---------------------> to: ", unit=msgString, rc=rc)
