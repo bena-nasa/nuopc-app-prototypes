@@ -1,0 +1,20 @@
+nuopc_app-prototypes:
+  fixture: true
+  develop: develop
+
+ESMA_env:
+  local: ./ESMA_env
+  remote: git@github.com:GEOS-ESM/ESMA_env.git
+  tag: v3.14.0
+  develop: main
+
+ESMA_cmake:
+  local: ./ESMA_cmake
+  remote: git@github.com:GEOS-ESM/ESMA_cmake.git
+  tag: v3.17.0
+  develop: develop
+
+ecbuild:
+  local: ./ESMA_cmake/ecbuild
+  remote: git@github.com:GEOS-ESM/ecbuild.git
+  tag: geos/v1.2.0
