@@ -46,33 +46,16 @@ module ATM
 
     ! derive from NUOPC_Driver
     call NUOPC_CompDerive(driver, driverSS, _RC)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
-
     ! specialize driver
     call NUOPC_CompSpecialize(driver, specLabel=label_SetModelServices, &
       specRoutine=SetModelServices, _RC)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
 #ifdef CUSTOMRUNSEQUENCE_on
     call NUOPC_CompSpecialize(driver, specLabel=label_SetRunSequence, &
       specRoutine=SetRunSequence, _RC)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
 #endif
 
     ! set driver verbosity
     call NUOPC_CompAttributeSet(driver, name="Verbosity", value="high", _RC)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
 
   end subroutine
 
@@ -145,8 +128,7 @@ module ATM
       _RC)
 
     ! ingest FreeFormat run sequence
-    call NUOPC_DriverIngestRunSequence(driver, runSeqFF, &
-      autoAddConnectors=.true., _RC)
+    call NUOPC_DriverIngestRunSequence(driver, runSeqFF, autoAddConnectors=.true., _RC)
 
     ! clean-up
     call NUOPC_FreeFormatDestroy(runSeqFF, _RC)

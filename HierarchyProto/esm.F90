@@ -102,10 +102,6 @@ module ESM
     write(vString,"(I10)") verbosity
 !    call NUOPC_CompAttributeSet(comp, name="Verbosity", value=vString, _RC)
     call NUOPC_CompAttributeSet(comp, name="Verbosity", value="high", _RC)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
 
     ! SetServices for OCN with petList on second section of PETs
     allocate(petList(petCountOCN))

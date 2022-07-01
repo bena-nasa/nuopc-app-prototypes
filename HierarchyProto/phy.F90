@@ -138,21 +138,16 @@ module PHY
     call NUOPC_Realize(exportState, bobo, _RC)
 
 
-    call ESMF_StateGet(exportState, itemName="precipitation_flux", &
-      itemType=itemType, _RC)
+    call ESMF_StateGet(exportState, itemName="precipitation_flux", itemType=itemType, _RC)
     if (itemType==ESMF_STATEITEM_FIELD) then
-      call ESMF_StateGet(exportState, field=field, &
-        itemName="precipitation_flux", _RC)
-      call ESMF_FieldFill(field, dataFillScheme="sincos", &
-        param1I4=0, param2I4=4, _RC)
+      call ESMF_StateGet(exportState, field=field, itemName="precipitation_flux", _RC)
+      call ESMF_FieldFill(field, dataFillScheme="sincos",  param1I4=0, param2I4=4, _RC)
     endif
 
-    call ESMF_StateGet(exportState, itemName="PHYEX", &
-      itemType=itemType, _RC)
+    call ESMF_StateGet(exportState, itemName="PHYEX", itemType=itemType, _RC)
     if (itemType==ESMF_STATEITEM_FIELD) then
       call ESMF_StateGet(exportState, field=field, itemName="PHYEX", _RC)
-      call ESMF_FieldFill(field, dataFillScheme="sincos", &
-        param1I4=0, param2I4=5, _RC)
+      call ESMF_FieldFill(field, dataFillScheme="sincos", param1I4=0, param2I4=5, _RC)
     endif
 
     ! write out the Fields in the exportState

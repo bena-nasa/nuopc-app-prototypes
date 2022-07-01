@@ -92,8 +92,7 @@ module DYN
     ! exportable field: surface_net_downward_shortwave_flux
     call NUOPC_Advertise(exportState, &
       StandardName="surface_net_downward_shortwave_flux", name="rsns", &
-      SharePolicyField="share", &
-      _RC)
+      SharePolicyField="share", _RC)
 
 #if 1
     call NUOPC_AddNestedState(exportState, &
@@ -101,8 +100,7 @@ module DYN
 
     call NUOPC_Advertise(nestedState, &
       StandardName="surface_net_downward_shortwave_flux", name="rsns", &
-      SharePolicyField="share", &
-      _RC)
+      SharePolicyField="share",_RC)
 #endif
 
 #endif
@@ -159,8 +157,7 @@ module DYN
        selection="realize_connected_remove_others", _RC)
     ! exportable field: surface_net_downward_shortwave_flux
     call NUOPC_Realize(exportState, grid=gridOut, &
-      fieldName="rsns", &
-      selection="realize_connected_remove_others", _RC)
+      fieldName="rsns", selection="realize_connected_remove_others", _RC)
 #endif
 
   call print_message("Realize Dyn")
@@ -202,15 +199,13 @@ module DYN
     endif
 
 #if 1
-    call ESMF_TimePrint(time, &
-      preString="DYN: DataInitialize time: ", unit=msgString, _RC)
+    call ESMF_TimePrint(time, preString="DYN: DataInitialize time: ", unit=msgString, _RC)
     call ESMF_LogWrite(msgString, ESMF_LOGMSG_INFO, _RC)
 #endif
 
     if (neededCurrent) then
       ! indicate that data initialization is complete (breaking out of init-loop)
-      call NUOPC_CompAttributeSet(model, &
-        name="InitializeDataComplete", value="true", _RC)
+      call NUOPC_CompAttributeSet(model, name="InitializeDataComplete", value="true", _RC)
     endif
 
     ! write out the Fields in the importState
@@ -218,20 +213,16 @@ module DYN
       !status=ESMF_FILESTATUS_REPLACE, relaxedFlag=.true., _RC)
 
     ! data initialize the exported fields
-    call ESMF_StateGet(exportState, itemName="pmsl", &
-      itemType=itemType, _RC)
+    call ESMF_StateGet(exportState, itemName="pmsl", itemType=itemType, _RC)
     if (itemType==ESMF_STATEITEM_FIELD) then
       call ESMF_StateGet(exportState, field=field, itemName="pmsl", _RC)
-      call ESMF_FieldFill(field, dataFillScheme="sincos", &
-        param1I4=0, param2I4=2, _RC)
+      call ESMF_FieldFill(field, dataFillScheme="sincos", param1I4=0, param2I4=2, _RC)
     endif
 
-    call ESMF_StateGet(exportState, itemName="rsns", &
-      itemType=itemType, _RC)
+    call ESMF_StateGet(exportState, itemName="rsns", itemType=itemType, _RC)
     if (itemType==ESMF_STATEITEM_FIELD) then
       call ESMF_StateGet(exportState, field=field, itemName="rsns", _RC)
-      call ESMF_FieldFill(field, dataFillScheme="sincos", &
-        param1I4=0, param2I4=3, _RC)
+      call ESMF_FieldFill(field, dataFillScheme="sincos", param1I4=0, param2I4=3, _RC)
     endif
 
     ! write out the Fields in the exportState
@@ -282,21 +273,15 @@ module DYN
     call ESMF_LogWrite(msgString, ESMF_LOGMSG_INFO, _RC)
 
     ! update the export fields with data
-    call ESMF_StateGet(exportState, itemName="pmsl", &
-      itemType=itemType, _RC)
+    call ESMF_StateGet(exportState, itemName="pmsl", itemType=itemType, _RC)
     if (itemType==ESMF_STATEITEM_FIELD) then
-      call ESMF_StateGet(exportState, field=field, &
-        itemName="pmsl", _RC)
-      call ESMF_FieldFill(field, dataFillScheme="sincos", &
-        param1I4=step, param2I4=2, _RC)
+      call ESMF_StateGet(exportState, field=field, itemName="pmsl", _RC)
+      call ESMF_FieldFill(field, dataFillScheme="sincos", param1I4=step, param2I4=2, _RC)
     endif
-    call ESMF_StateGet(exportState, itemName="rsns", &
-      itemType=itemType, _RC)
+    call ESMF_StateGet(exportState, itemName="rsns", itemType=itemType, _RC)
     if (itemType==ESMF_STATEITEM_FIELD) then
-      call ESMF_StateGet(exportState, field=field, &
-        itemName="rsns", _RC)
-      call ESMF_FieldFill(field, dataFillScheme="sincos", &
-        param1I4=step, param2I4=3, _RC)
+      call ESMF_StateGet(exportState, field=field, itemName="rsns", _RC)
+      call ESMF_FieldFill(field, dataFillScheme="sincos", param1I4=step, param2I4=3, _RC)
     endif
 
     call ESMF_StateGet(importState, itemName="BOBO", field=field, _RC)
