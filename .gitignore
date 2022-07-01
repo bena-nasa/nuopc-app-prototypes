@@ -878,3 +878,13 @@ SingleModelProto/mainApp.o
 SingleModelProto/mainApp.stdout
 SingleModelProto/model.mod
 SingleModelProto/model.o
+*~
+/@ESMA_cmake/
+/ESMA_cmake/
+/ESMA_cmake@/
+/@ESMA_env/
+/ESMA_env/
+/ESMA_env@/
+/.mepo/
+*.py.bak
+CMakeUserPresets.json

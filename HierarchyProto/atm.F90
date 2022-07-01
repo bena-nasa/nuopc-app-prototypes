@@ -1,3 +1,4 @@
+#include "error_handling.h"
 !==============================================================================
 ! Earth System Modeling Framework
 ! Copyright 2002-2022, University Corporation for Atmospheric Research,
@@ -16,6 +17,7 @@ module ATM
   ! Code specializing generic NUOPC_Driver as ATM model with DYN+PHY children
   !-----------------------------------------------------------------------------
 
+  use my_error_handling
   use ESMF
   use NUOPC
   use NUOPC_Driver, &
@@ -43,7 +45,7 @@ module ATM
     rc = ESMF_SUCCESS
 
     ! derive from NUOPC_Driver
-    call NUOPC_CompDerive(driver, driverSS, rc=rc)
+    call NUOPC_CompDerive(driver, driverSS, _RC)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) &
@@ -51,14 +53,14 @@ module ATM
 
     ! specialize driver
     call NUOPC_CompSpecialize(driver, specLabel=label_SetModelServices, &
-      specRoutine=SetModelServices, rc=rc)
+      specRoutine=SetModelServices, _RC)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) &
       return  ! bail out
 #ifdef CUSTOMRUNSEQUENCE_on
     call NUOPC_CompSpecialize(driver, specLabel=label_SetRunSequence, &
-      specRoutine=SetRunSequence, rc=rc)
+      specRoutine=SetRunSequence, _RC)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) &
@@ -66,7 +68,7 @@ module ATM
 #endif
 
     ! set driver verbosity
-    call NUOPC_CompAttributeSet(driver, name="Verbosity", value="high", rc=rc)
+    call NUOPC_CompAttributeSet(driver, name="Verbosity", value="high", _RC)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) &
@@ -90,54 +92,30 @@ module ATM
 
     ! SetServices for DYN
     call NUOPC_DriverAddComp(driver, "DYN", dynSS, petList=(/0/), &
-      comp=child, rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
+      comp=child, _RC)
     verbosity = 0 ! reset
     verbosity = ibset(verbosity,0)  ! log basic intro/extro and indentation
     verbosity = ibset(verbosity,11) ! log info about data dependency loop
     verbosity = ibset(verbosity,12) ! log info about run time-loop
     write(vString,"(I10)") verbosity
-!    call NUOPC_CompAttributeSet(child, name="Verbosity", value=vString, rc=rc)
-    call NUOPC_CompAttributeSet(child, name="Verbosity", value="high", rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
+!    call NUOPC_CompAttributeSet(child, name="Verbosity", value=vString, _RC)
+    call NUOPC_CompAttributeSet(child, name="Verbosity", value="high", _RC)
 
     ! SetServices for PHY
     call NUOPC_DriverAddComp(driver, "PHY", phySS, petList=(/1/), &
-      comp=child, rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
+      comp=child, _RC)
     verbosity = 0 ! reset
     verbosity = ibset(verbosity,0)  ! log basic intro/extro and indentation
     verbosity = ibset(verbosity,11) ! log info about data dependency loop
     verbosity = ibset(verbosity,12) ! log info about run time-loop
-!    call NUOPC_CompAttributeSet(child, name="Verbosity", value=vString, rc=rc)
-    call NUOPC_CompAttributeSet(child, name="Verbosity", value="high", rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
+!    call NUOPC_CompAttributeSet(child, name="Verbosity", value=vString, _RC)
+    call NUOPC_CompAttributeSet(child, name="Verbosity", value="high", _RC)
 
 #ifndef CUSTOMRUNSEQUENCE_on
     ! SetServices for PHY2DYN
     call NUOPC_DriverAddComp(driver, srcCompLabel="PHY", dstCompLabel="DYN", &
-      compSetServicesRoutine=cplSS, comp=conn, rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
-    call NUOPC_CompAttributeSet(conn, name="Verbosity", value="high", rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
+      compSetServicesRoutine=cplSS, comp=conn, _RC)
+    call NUOPC_CompAttributeSet(conn, name="Verbosity", value="high", _RC)
 #endif
 
   end subroutine
@@ -155,9 +133,7 @@ module ATM
     rc = ESMF_SUCCESS
 
     ! query the driver for its name
-    call ESMF_GridCompGet(driver, name=name, rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, file=trim(name)//":"//__FILE__)) return  ! bail out
+    call ESMF_GridCompGet(driver, name=name, _RC)
 
     ! set up free format run sequence
     runSeqFF = NUOPC_FreeFormatCreate(stringList=(/ &
@@ -166,20 +142,14 @@ module ATM
       "   DYN         ",    &
       "   PHY         ",    &
       " @             " /), &
-      rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, file=trim(name)//":"//__FILE__)) return  ! bail out
+      _RC)
 
     ! ingest FreeFormat run sequence
     call NUOPC_DriverIngestRunSequence(driver, runSeqFF, &
-      autoAddConnectors=.true., rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, file=trim(name)//":"//__FILE__)) return  ! bail out
+      autoAddConnectors=.true., _RC)
 
     ! clean-up
-    call NUOPC_FreeFormatDestroy(runSeqFF, rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, file=trim(name)//":"//__FILE__)) return  ! bail out
+    call NUOPC_FreeFormatDestroy(runSeqFF, _RC)
 
   end subroutine
 
