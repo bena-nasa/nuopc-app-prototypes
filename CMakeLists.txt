@@ -39,4 +39,6 @@ endif ()
 ecbuild_declare_project()
 
 add_subdirectory(HierarchyProto)
+add_subdirectory(DeepHierarchyProto)
+add_subdirectory(SinglePetHierarchy)
 add_subdirectory(error_handling)
