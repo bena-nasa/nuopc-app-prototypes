@@ -51,6 +51,8 @@ module ESM
 
     ! set driver verbosity
     call NUOPC_CompAttributeSet(driver, name="Verbosity", value="high", _RC)
+    !call NUOPC_CompAttributeSet(driver, name="HierarchyProtocol", value="PushUpAllExportsAndUnsatisfiedImports", _RC)
+    !call NUOPC_CompAttributeSet(driver, name="HierarchyProtocol", value="Explorer", _RC)
 
   end subroutine
 

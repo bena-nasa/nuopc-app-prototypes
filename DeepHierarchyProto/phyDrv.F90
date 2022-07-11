@@ -50,12 +50,14 @@ module phyDrv
     call NUOPC_CompSpecialize(driver, specLabel=label_SetModelServices, &
       specRoutine=SetModelServices, _RC)
 #ifdef CUSTOMRUNSEQUENCE_on
-    call NUOPC_CompSpecialize(driver, specLabel=label_SetRunSequence, &
-      specRoutine=SetRunSequence, _RC)
+    !call NUOPC_CompSpecialize(driver, specLabel=label_SetRunSequence, &
+      !specRoutine=SetRunSequence, _RC)
 #endif
 
     ! set driver verbosity
     call NUOPC_CompAttributeSet(driver, name="Verbosity", value="high", _RC)
+    !call NUOPC_CompAttributeSet(driver, name="HierarchyProtocol", value="Explorer", _RC)
+    call NUOPC_CompAttributeSet(driver, name="HierarchyProtocol", value="PushUpAllExportsAndUnsatisfiedImports", _RC)
 
   end subroutine
 
@@ -96,9 +98,9 @@ module phyDrv
 
 #ifndef CUSTOMRUNSEQUENCE_on
     ! SetServices for PHY2DYN
-    call NUOPC_DriverAddComp(driver, srcCompLabel="PHY", dstCompLabel="DYN", &
-      compSetServicesRoutine=cplSS, comp=conn, _RC)
-    call NUOPC_CompAttributeSet(conn, name="Verbosity", value="high", _RC)
+    !call NUOPC_DriverAddComp(driver, srcCompLabel="PHY", dstCompLabel="DYN", &
+      !compSetServicesRoutine=cplSS, comp=conn, _RC)
+    !call NUOPC_CompAttributeSet(conn, name="Verbosity", value="high", _RC)
 #endif
 
   end subroutine

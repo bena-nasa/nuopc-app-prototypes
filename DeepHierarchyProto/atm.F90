@@ -50,12 +50,14 @@ module ATM
     call NUOPC_CompSpecialize(driver, specLabel=label_SetModelServices, &
       specRoutine=SetModelServices, _RC)
 #ifdef CUSTOMRUNSEQUENCE_on
-    call NUOPC_CompSpecialize(driver, specLabel=label_SetRunSequence, &
-      specRoutine=SetRunSequence, _RC)
+    !call NUOPC_CompSpecialize(driver, specLabel=label_SetRunSequence, &
+      !specRoutine=SetRunSequence, _RC)
 #endif
 
     ! set driver verbosity
     call NUOPC_CompAttributeSet(driver, name="Verbosity", value="high", _RC)
+    call NUOPC_CompAttributeSet(driver, name="HierarchyProtocol", value="Explorer", _RC)
+    !call NUOPC_CompAttributeSet(driver, name="HierarchyProtocol", value="PushUpAllExportsAndUnsatisfiedImports", _RC)
 
   end subroutine
 
@@ -91,11 +93,15 @@ module ATM
     verbosity = ibset(verbosity,12) ! log info about run time-loop
 !    call NUOPC_CompAttributeSet(child, name="Verbosity", value=vString, _RC)
     call NUOPC_CompAttributeSet(child, name="Verbosity", value="high", _RC)
+    call NUOPC_DriverAddComp(driver, srcCompLabel="PHYDRV", dstCompLabel="DYN", &
+      compSetServicesRoutine=cplSS, comp=conn, _RC)
 
 #ifndef CUSTOMRUNSEQUENCE_on
     ! SetServices for PHY2DYN
-    call NUOPC_DriverAddComp(driver, srcCompLabel="PHYDRV", dstCompLabel="DYN", &
-      compSetServicesRoutine=cplSS, comp=conn, _RC)
+    !call NUOPC_DriverAddComp(driver, srcCompLabel="PHYDRV", dstCompLabel="DYN", &
+      !compSetServicesRoutine=cplSS, comp=conn, _RC)
+    !call NUOPC_DriverAddComp(driver, srcCompLabel="DYN", dstCompLabel="PHYDRV", &
+      !compSetServicesRoutine=cplSS, comp=conn, _RC)
     !call NUOPC_DriverAddComp(driver, srcCompLabel="PHY", dstCompLabel="DYN", &
       !compSetServicesRoutine=cplSS, comp=conn, _RC)
     !call NUOPC_CompAttributeSet(conn, name="Verbosity", value="high", _RC)

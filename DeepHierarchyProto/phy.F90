@@ -47,6 +47,7 @@ module PHY
       specRoutine=Realize, _RC)
     call NUOPC_CompSpecialize(model, specLabel=label_Advance, &
       specRoutine=Advance, _RC)
+    call NUOPC_CompAttributeSet(model, name="HierarchyProtocol", value="PushUpAllExportsAndUnsatisfiedImports", _RC)
 
   end subroutine
 
@@ -206,7 +207,7 @@ module PHY
     call ESMF_StateGet(exportState, itemName="PHYEX", &
       itemType=itemType, _RC)
     if (itemType==ESMF_STATEITEM_FIELD) then
-      call ESMF_StateGet(exportState, field=field, itemName="PHYEX", _RC)
+      call ESMF_StateGet(exportState, field=field, itemName="PHYEX", _RC)!
       call ESMF_FieldFill(field, dataFillScheme="sincos", param1I4=step, param2I4=5, _RC)
     endif
     call ESMF_StateGet(exportState, itemName="BOBO",field=field, _RC)

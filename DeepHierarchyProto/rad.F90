@@ -47,6 +47,7 @@ module RAD
       specRoutine=Realize, _RC)
     call NUOPC_CompSpecialize(model, specLabel=label_Advance, &
       specRoutine=Advance, _RC)
+    call NUOPC_CompAttributeSet(model, name="HierarchyProtocol", value="PushUpAllExportsAndUnsatisfiedImports", _RC)
 
   end subroutine
 
@@ -70,7 +71,7 @@ module RAD
     ! Fields. Use this if you want to drive the model independently.
 #define WITHIMPORTFIELDS
 #ifdef WITHIMPORTFIELDS
-
+    call NUOPC_Advertise(importState, StandardName="sea_surface_temperature", name="sst", _RC)
 #endif
 
 #define WITHEXPORTFIELDS
@@ -110,6 +111,9 @@ module RAD
 
 #define WITHIMPORTFIELDS
 #ifdef WITHIMPORTFIELDS
+    call NUOPC_Realize(importState, grid=gridIn, &
+      fieldName="sst", &
+      selection="realize_connected_remove_others", _RC)
 #endif
 
 #define WITHEXPORTFIELDS

@@ -1,4 +1,4 @@
-#include "error_handling.h"
+# include "error_handling.h"
 !==============================================================================
 ! Earth System Modeling Framework
 ! Copyright 2002-2022, University Corporation for Atmospheric Research,
@@ -49,6 +49,7 @@ module DYN
       specRoutine=DataInitialize, _RC)
     call NUOPC_CompSpecialize(model, specLabel=label_Advance, &
       specRoutine=Advance, _RC)
+    call NUOPC_CompAttributeSet(model, name="HierarchyProtocol", value="PushUpAllExportsAndUnsatisfiedImports", _RC)
 
   end subroutine
 
@@ -81,7 +82,7 @@ module DYN
     call NUOPC_Advertise(importState, StandardName="BOBO", _RC)
 #endif
 
-#define WITHEXPORTFIELDS
+!#define WITHEXPORTFIELDS
 #ifdef WITHEXPORTFIELDS
     ! exportable field: air_pressure_at_sea_level
     call NUOPC_Advertise(exportState, &
@@ -89,7 +90,7 @@ module DYN
       SharePolicyField="share", SharePolicyGeomObject="not share",&
       _RC)
 
-    ! exportable field: surface_net_downward_shortwave_flux
+    !! exportable field: surface_net_downward_shortwave_flux
     call NUOPC_Advertise(exportState, &
       StandardName="surface_net_downward_shortwave_flux", name="rsns", &
       SharePolicyField="share", _RC)
@@ -141,13 +142,13 @@ module DYN
     call NUOPC_Realize(importState, bobo, _RC)
 #endif
 
-#define WITHEXPORTFIELDS
+!#define WITHEXPORTFIELDS
 #ifdef WITHEXPORTFIELDS
     ! exportable field: air_pressure_at_sea_level
     call NUOPC_Realize(exportState, grid=gridOut, &
       fieldName="pmsl", typekind=ESMF_TYPEKIND_R4, &
        selection="realize_connected_remove_others", _RC)
-    ! exportable field: surface_net_downward_shortwave_flux
+    !! exportable field: surface_net_downward_shortwave_flux
     call NUOPC_Realize(exportState, grid=gridOut, &
       fieldName="rsns", selection="realize_connected_remove_others", _RC)
 #endif

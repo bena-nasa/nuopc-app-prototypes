@@ -45,10 +45,11 @@ module OCN
       specRoutine=Advertise, _RC)
     call NUOPC_CompSpecialize(model, specLabel=label_RealizeProvided, &
       specRoutine=Realize, _RC)
-    call NUOPC_CompSpecialize(model, specLabel=label_SetClock, &
-      specRoutine=SetClock, _RC)
+    !call NUOPC_CompSpecialize(model, specLabel=label_SetClock, &
+      !specRoutine=SetClock, _RC)
     call NUOPC_CompSpecialize(model, specLabel=label_Advance, &
       specRoutine=Advance, _RC)
+    call NUOPC_CompAttributeSet(model, name="HierarchyProtocol", value="PushUpAllExportsAndUnsatisfiedImports", _RC)
 
   end subroutine
 
@@ -75,10 +76,10 @@ module OCN
     ! importable field: precipitation_flux
     call NUOPC_Advertise(importState, &
       StandardName="precipitation_flux", _RC)
-    ! importable field: air_pressure_at_sea_level
+    !! importable field: air_pressure_at_sea_level
     call NUOPC_Advertise(importState, &
       StandardName="air_pressure_at_sea_level", name="pmsl", _RC)
-    ! importable field: surface_net_downward_shortwave_flux
+    !! importable field: surface_net_downward_shortwave_flux
     call NUOPC_Advertise(importState, &
       StandardName="surface_net_downward_shortwave_flux", name="rsns", _RC)
 #endif
@@ -118,17 +119,17 @@ module OCN
       _RC)
     gridOut = gridIn ! for now out same as in
 
-#define WITHIMPORTFIELDS
+!#define WITHIMPORTFIELDS
 #ifdef WITHIMPORTFIELDS
     ! importable field: precipitation_flux
     call NUOPC_Realize(importState, grid=gridIn, &
       fieldName="precipitation_flux", &
       selection="realize_connected_remove_others", _RC)
-    ! importable field: air_pressure_at_sea_level
+    !! importable field: air_pressure_at_sea_level
     call NUOPC_Realize(importState, grid=gridIn, &
       fieldName="pmsl", &
       selection="realize_connected_remove_others", _RC)
-    ! importable field: surface_net_downward_shortwave_flux
+    !! importable field: surface_net_downward_shortwave_flux
     call NUOPC_Realize(importState, grid=gridIn, &
       fieldName="rsns", &
       selection="realize_connected_remove_others", _RC)
