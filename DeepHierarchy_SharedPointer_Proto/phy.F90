@@ -49,8 +49,6 @@ module PHY
       specRoutine=RealizeAccepted, _RC)
     call NUOPC_CompSpecialize(model, specLabel=label_Advance, &
       specRoutine=Advance, _RC)
-    !call NUOPC_CompAttributeSet(model, name="HierarchyProtocol", value="PushUpAllExportsAndUnsatisfiedImports", _RC)
-    !call NUOPC_CompAttributeSet(model, name="HierarchyProtocol", value="ConnectProvidedFields", _RC)
 
   end subroutine
 
@@ -99,8 +97,6 @@ module PHY
        SharePolicyGeomObject="not share", &
        _RC)
     call print_message("Advertise Phys")
-   !call NUOPC_SetAttribute(importState, "FieldTransferPolicy", "transferAll", _RC)
-   !call NUOPC_SetAttribute(exportState, "FieldTransferPolicy", "transferAll", _RC)
 
   end subroutine
 
@@ -149,9 +145,6 @@ module PHY
 
     bobo = ESMF_FieldCreate(gridOut, ESMF_TYPEKIND_R4,name="BOBO",ungriddedLBound=[1],ungriddedUBound=[72],_RC)
     call NUOPC_Realize(exportState, bobo, _RC)
-    !call NUOPC_Realize(exportState, grid=gridOut, &
-      !fieldName="BOBO", &
-      !selection="realize_connected_remove_others", _RC)
 
 
     !call ESMF_StateGet(exportState, itemName="precipitation_flux", itemType=itemType, _RC)
@@ -249,15 +242,6 @@ module PHY
     call ESMF_StateGet(exportState, itemName="BOBO",field=field, _RC)
     call ESMF_FieldGet(field,farrayPtr=ptr3d,_RC)
     ptr3d=step
-    ! write out the Fields in the importState
-    !status=ESMF_FILESTATUS_OLD
-    !if (step==1) status=ESMF_FILESTATUS_REPLACE
-    !call NUOPC_Write(importState, fileNamePrefix="field_phy_import_adv_", &
-      !timeslice=step, status=status, relaxedFlag=.true., _RC)
-    ! write out the Fields in the exportState
-    !call NUOPC_Write(exportState, fileNamePrefix="field_phy_export_adv_", &
-      !timeslice=step, status=status, relaxedFlag=.true., _RC)
-    ! increment step counter
     step=step+1
     call print_message("Advance Phys")
 
