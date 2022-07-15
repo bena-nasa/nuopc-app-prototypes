@@ -45,10 +45,10 @@ module RAD
       specRoutine=Advertise, _RC)
     call NUOPC_CompSpecialize(model, specLabel=label_RealizeProvided, &
       specRoutine=Realize, _RC)
+    call NUOPC_CompSpecialize(model, specLabel=label_RealizeAccepted, &
+      specRoutine=RealizeAccepted, _RC)
     call NUOPC_CompSpecialize(model, specLabel=label_Advance, &
       specRoutine=Advance, _RC)
-    !call NUOPC_CompAttributeSet(model, name="HierarchyProtocol", value="PushUpAllExportsAndUnsatisfiedImports", _RC)
-    !call NUOPC_CompAttributeSet(model, name="HierarchyProtocol", value="ConnectProvidedFields", _RC)
 
   end subroutine
 
@@ -67,18 +67,22 @@ module RAD
     call NUOPC_ModelGet(model, importState=importState, &
       exportState=exportState, _RC)
 
-    ! Disabling the following macro, e.g. renaming to WITHIMPORTFIELDS_disable,
-    ! will result in a model component that does not advertise any importable
-    ! Fields. Use this if you want to drive the model independently.
-#define WITHIMPORTFIELDS
-#ifdef WITHIMPORTFIELDS
-    call NUOPC_Advertise(importState, StandardName="sea_surface_temperature", name="sst", _RC)
-#endif
+    !call NUOPC_Advertise(importState, StandardName="sea_surface_temperature", name="sst", &
+       !TransferOfferGeomObject="fcan provide", &
+       !SharePolicyField="not share", &
+       !SharePolicyGeomObject="not share", & 
+       !_RC)
+    call NUOPC_Advertise(importState, StandardName="PHYEX", &
+       TransferOfferGeomObject="cannot provide", &
+       SharePolicyField="share", &
+       SharePolicyGeomObject="not share", & 
+       _RC)
+    call NUOPC_Advertise(exportState, StandardName="RADEX", &
+       TransferOfferGeomObject="will provide", &
+       SharePolicyField="share", &
+       SharePolicyGeomObject="not share", &
+       _RC)
 
-#define WITHEXPORTFIELDS
-#ifdef WITHEXPORTFIELDS
-    !call NUOPC_Advertise(exportState, StandardName="RADEX", _RC)
-#endif
     call print_message("Advertise Rad")
 
   end subroutine
@@ -110,20 +114,43 @@ module RAD
       _RC)
     gridOut = gridIn ! for now out same as in
 
-#define WITHIMPORTFIELDS
-#ifdef WITHIMPORTFIELDS
-    call NUOPC_Realize(importState, grid=gridIn, &
-      fieldName="sst", &
-      selection="realize_connected_remove_others", _RC)
-#endif
-
-#define WITHEXPORTFIELDS
-#ifdef WITHEXPORTFIELDS
-    !call NUOPC_Realize(exportState, grid=gridIn, &
-      !fieldName="RADEX", &
+    !call NUOPC_Realize(importState, grid=gridIn, &
+      !fieldName="sst", &
       !selection="realize_connected_remove_others", _RC)
+    call NUOPC_Realize(exportState, grid=gridOut, &
+      fieldName="RADEX", &
+      selection="realize_connected_remove_others", _RC)
+    call print_message("Realize Rad")
 
-#endif
+  end subroutine
+
+  subroutine RealizeAccepted(model, rc)
+    type(ESMF_GridComp)  :: model
+    integer, intent(out) :: rc
+
+    ! local variables
+    type(ESMF_State)          :: importState, exportState
+    type(ESMF_Grid)           :: gridIn
+    type(ESMF_Grid)           :: gridOut
+    type(ESMF_Field)          :: field
+    type(ESMF_StateItem_Flag) :: itemtype
+
+    rc = ESMF_SUCCESS
+
+    ! query for importState and exportState
+    call NUOPC_ModelGet(model, importState=importState, &
+      exportState=exportState, _RC)
+
+    ! create a Grid object for Fields
+    gridIn = ESMF_GridCreateNoPeriDimUfrm(maxIndex=(/100, 100/), &
+      minCornerCoord=(/0._ESMF_KIND_R8, -50._ESMF_KIND_R8/), &
+      maxCornerCoord=(/360._ESMF_KIND_R8, 90._ESMF_KIND_R8/), &
+      coordSys=ESMF_COORDSYS_CART, staggerLocList=(/ESMF_STAGGERLOC_CENTER/), &
+      _RC)
+    gridOut = gridIn ! for now out same as in
+
+    call NUOPC_Realize(importState,  &
+      fieldName="PHYEX",_RC)
     call print_message("Realize Rad")
 
   end subroutine
@@ -142,18 +169,21 @@ module RAD
     type(ESMF_FileStatus_Flag)  :: status
     type(ESMF_StateItem_Flag)   :: itemType
     character(len=160)          :: msgString
-    real, pointer :: ptr3d(:,:,:)
+    real(KIND=ESMF_KIND_R8), pointer :: ptr2d(:,:)
 
     rc = ESMF_SUCCESS
 
     ! query for clock, importState and exportState
     call NUOPC_ModelGet(model, modelClock=clock, importState=importState, &
       exportState=exportState, _RC)
-
+    call print_pointer_address(exportState,"rad exp",_RC)
+    call print_pointer_address(importState,"rad imp",_RC)
+    
     ! HERE THE MODEL ADVANCES: currTime -> currTime + timeStep
 
     call ESMF_ClockPrint(clock, options="currTime", &
       preString="------>Advancing RAD from: ", unit=msgString, _RC)
+    type(c_ptr) :: base_address 
     call ESMF_LogWrite(msgString, ESMF_LOGMSG_INFO, _RC)
 
     call ESMF_ClockPrint(clock, options="stopTime", &

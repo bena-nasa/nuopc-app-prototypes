@@ -69,25 +69,35 @@ module OCN
     call NUOPC_ModelGet(model, importState=importState, &
       exportState=exportState, _RC)
 
-    ! Disabling the following macro, e.g. renaming to WITHIMPORTFIELDS_disable,
-    ! will result in a model component that does not advertise any importable
-    ! Fields. Use this if you want to drive the model independently.
-#define WITHIMPORTFIELDS
-#ifdef WITHIMPORTFIELDS
-    ! importable field: precipitation_flux
+    !! importable field: precipitation_flux
+    !call NUOPC_Advertise(importState, &
+      !StandardName="precipitation_flux", &
+       !TransferOfferGeomObject="will provide", &
+       !SharePolicyField="not share", &
+       !SharePolicyGeomObject="not share", &
+       !_RC)
+    !!! importable field: air_pressure_at_sea_level
     call NUOPC_Advertise(importState, &
-      StandardName="precipitation_flux", _RC)
-    !! importable field: air_pressure_at_sea_level
-    call NUOPC_Advertise(importState, &
-      StandardName="air_pressure_at_sea_level", name="pmsl", _RC)
-    !! importable field: surface_net_downward_shortwave_flux
-    call NUOPC_Advertise(importState, &
-      StandardName="surface_net_downward_shortwave_flux", name="rsns", _RC)
-#endif
+      StandardName="air_pressure_at_sea_level", name="pmsl", &
+       TransferOfferGeomObject="will provide", &
+       SharePolicyField="not share", &
+       SharePolicyGeomObject="not share", &
+       _RC)
+    !!! importable field: surface_net_downward_shortwave_flux
+    !call NUOPC_Advertise(importState, &
+      !StandardName="surface_net_downward_shortwave_flux", name="rsns", &
+       !TransferOfferGeomObject="will provide", &
+       !SharePolicyField="not share", &
+       !SharePolicyGeomObject="not share", &
+       !_RC)
 
     ! exportable field: sea_surface_temperature
     call NUOPC_Advertise(exportState, &
-      StandardName="sea_surface_temperature", name="sst", _RC)
+      StandardName="sea_surface_temperature", name="sst", &
+       TransferOfferGeomObject="will provide", &
+       SharePolicyField="not share", &
+       SharePolicyGeomObject="not share", &
+       _RC)
 
     call print_message("Advertise Ocean")
 
@@ -120,33 +130,30 @@ module OCN
       _RC)
     gridOut = gridIn ! for now out same as in
 
-!#define WITHIMPORTFIELDS
-#ifdef WITHIMPORTFIELDS
     ! importable field: precipitation_flux
-    call NUOPC_Realize(importState, grid=gridIn, &
-      fieldName="precipitation_flux", &
-      selection="realize_connected_remove_others", _RC)
-    !! importable field: air_pressure_at_sea_level
+    !call NUOPC_Realize(importState, grid=gridIn, &
+      !fieldName="precipitation_flux", &
+      !selection="realize_connected_remove_others", _RC)
+    !!! importable field: air_pressure_at_sea_level
     call NUOPC_Realize(importState, grid=gridIn, &
       fieldName="pmsl", &
       selection="realize_connected_remove_others", _RC)
-    !! importable field: surface_net_downward_shortwave_flux
-    call NUOPC_Realize(importState, grid=gridIn, &
-      fieldName="rsns", &
-      selection="realize_connected_remove_others", _RC)
-#endif
+    !!! importable field: surface_net_downward_shortwave_flux
+    !call NUOPC_Realize(importState, grid=gridIn, &
+      !fieldName="rsns", &
+      !selection="realize_connected_remove_others", _RC)
 
     ! exportable field: sea_surface_temperature
     call NUOPC_Realize(exportState, grid=gridOut, &
       fieldName="sst", &
       selection="realize_connected_remove_others", _RC)
 
-    call ESMF_StateGet(exportState, itemName="sst", itemType=itemType, _RC)
-    if (itemType==ESMF_STATEITEM_FIELD) then
-      call ESMF_StateGet(exportState, field=field, itemName="sst", _RC)
-      call ESMF_FieldFill(field, dataFillScheme="sincos", &
-        param1I4=0, param2I4=1, _RC)
-    endif
+    !call ESMF_StateGet(exportState, itemName="sst", itemType=itemType, _RC)
+    !if (itemType==ESMF_STATEITEM_FIELD) then
+      !call ESMF_StateGet(exportState, field=field, itemName="sst", _RC)
+      !call ESMF_FieldFill(field, dataFillScheme="sincos", &
+        !param1I4=0, param2I4=1, _RC)
+    !endif
 
     call print_message("Realize Ocean")
     ! write out the Fields in the exportState
@@ -210,6 +217,9 @@ module OCN
     ! will come in by one internal timeStep advanced. This goes until the
     ! stopTime of the internal Clock has been reached.
 
+    call print_pointer_address(exportState,"ocn exp",_RC)
+    call print_pointer_address(importState,"ocn imp",_RC)
+
     call ESMF_ClockPrint(clock, options="currTime", &
       preString="------>Advancing OCN from: ", unit=msgString, _RC)
     call ESMF_LogWrite(msgString, ESMF_LOGMSG_INFO, _RC)
@@ -221,12 +231,12 @@ module OCN
     call ESMF_LogWrite(msgString, ESMF_LOGMSG_INFO, _RC)
 
     ! update the export field with data
-    call ESMF_StateGet(exportState, field=field, itemName="sst", _RC)
-    call ESMF_FieldFill(field, dataFillScheme="sincos", &
-      param1I4=step, param2I4=1, _RC)
+    !call ESMF_StateGet(exportState, field=field, itemName="sst", _RC)
+    !call ESMF_FieldFill(field, dataFillScheme="sincos", &
+      !param1I4=step, param2I4=1, _RC)
     ! write out the Fields in the exportState
-    status=ESMF_FILESTATUS_OLD
-    if (step==1) status=ESMF_FILESTATUS_REPLACE
+    !status=ESMF_FILESTATUS_OLD
+    !if (step==1) status=ESMF_FILESTATUS_REPLACE
     !call NUOPC_Write(importState, fileNamePrefix="field_ocn_import_adv_", &
       !timeslice=step, status=status, relaxedFlag=.true., _RC)
     !call NUOPC_Write(exportState, fileNamePrefix="field_ocn_export_adv_", &

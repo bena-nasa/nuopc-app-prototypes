@@ -45,6 +45,8 @@ module PHY
       specRoutine=Advertise, _RC)
     call NUOPC_CompSpecialize(model, specLabel=label_RealizeProvided, &
       specRoutine=Realize, _RC)
+    call NUOPC_CompSpecialize(model, specLabel=label_RealizeAccepted, &
+      specRoutine=RealizeAccepted, _RC)
     call NUOPC_CompSpecialize(model, specLabel=label_Advance, &
       specRoutine=Advance, _RC)
     !call NUOPC_CompAttributeSet(model, name="HierarchyProtocol", value="PushUpAllExportsAndUnsatisfiedImports", _RC)
@@ -54,7 +56,7 @@ module PHY
 
   !-----------------------------------------------------------------------------
 
-  subroutine Advertise(model, rc)
+  subroutine Advertise(model, rc) 
     type(ESMF_GridComp)  :: model
     integer, intent(out) :: rc
 
@@ -67,25 +69,38 @@ module PHY
     call NUOPC_ModelGet(model, importState=importState, &
       exportState=exportState, _RC)
 
-    ! Disabling the following macro, e.g. renaming to WITHIMPORTFIELDS_disable,
-    ! will result in a model component that does not advertise any importable
-    ! Fields. Use this if you want to drive the model independently.
-#define WITHIMPORTFIELDS
-#ifdef WITHIMPORTFIELDS
     ! importable field: sea_surface_temperature
-    call NUOPC_Advertise(importState, StandardName="sea_surface_temperature", name="sst", _RC)
-#endif
+    !call NUOPC_Advertise(importState, StandardName="sea_surface_temperature", name="sst", &
+       !TransferOfferGeomObject="can provide", &
+       !SharePolicyField="not share", &
+       !SharePolicyGeomObject="not share", &
+       !_RC)
 
-#define WITHEXPORTFIELDS
-#ifdef WITHEXPORTFIELDS
+    !call NUOPC_Advertise(exportState, StandardName="precipitation_flux", &
+       !TransferOfferGeomObject="can provide", &
+       !SharePolicyField="not share", &
+       !SharePolicyGeomObject="not share", &
+       !_RC)
 
-    call NUOPC_Advertise(exportState, StandardName="precipitation_flux", _RC)
+    call NUOPC_Advertise(exportState, StandardName="PHYEX", &
+       TransferOfferGeomObject="will provide", &
+       SharePolicyField="share", &
+       SharePolicyGeomObject="not share", &
+       _RC)
+    call NUOPC_Advertise(importState, StandardName="RADEX", &
+       TransferOfferGeomObject="cannot provide", &
+       SharePolicyField="share", &
+       SharePolicyGeomObject="not share", &
+       _RC)
 
-    call NUOPC_Advertise(exportState, StandardName="PHYEX", _RC)
-
-    call NUOPC_Advertise(exportState, StandardName="BOBO", _RC)
-#endif
+    call NUOPC_Advertise(exportState, StandardName="BOBO", &
+       TransferOfferGeomObject="will provide", &
+       SharePolicyField="share", &
+       SharePolicyGeomObject="not share", &
+       _RC)
     call print_message("Advertise Phys")
+   !call NUOPC_SetAttribute(importState, "FieldTransferPolicy", "transferAll", _RC)
+   !call NUOPC_SetAttribute(exportState, "FieldTransferPolicy", "transferAll", _RC)
 
   end subroutine
 
@@ -117,47 +132,108 @@ module PHY
       _RC)
     gridOut = gridIn ! for now out same as in
 
-#define WITHIMPORTFIELDS
-#ifdef WITHIMPORTFIELDS
     ! importable field: sea_surface_temperature
-    call NUOPC_Realize(importState, grid=gridIn, &
-      fieldName="sst", &
-      selection="realize_connected_remove_others", _RC)
-#endif
-
-#define WITHEXPORTFIELDS
-#ifdef WITHEXPORTFIELDS
+    !call NUOPC_Realize(importState, grid=gridIn, &
+      !fieldName="sst", &
+      !selection="realize_connected_remove_others", _RC)
     ! exportable field: precipitation_flux
-    call NUOPC_Realize(exportState, grid=gridOut, &
-      fieldName="precipitation_flux", &
-      selection="realize_connected_remove_others", _RC)
+
+    !call NUOPC_Realize(exportState, grid=gridOut, &
+      !fieldName="precipitation_flux", &
+      !selection="realize_connected_remove_others", _RC)
     ! exportable field: PHYEX
     call NUOPC_Realize(exportState, grid=gridOut, &
       fieldName="PHYEX", &
       selection="realize_connected_remove_others", _RC)
+    !call NUOPC_Realize(importState,  &
+      !fieldName="RADEX",_RC)
 
     bobo = ESMF_FieldCreate(gridOut, ESMF_TYPEKIND_R4,name="BOBO",ungriddedLBound=[1],ungriddedUBound=[72],_RC)
     call NUOPC_Realize(exportState, bobo, _RC)
+    !call NUOPC_Realize(exportState, grid=gridOut, &
+      !fieldName="BOBO", &
+      !selection="realize_connected_remove_others", _RC)
 
 
-    call ESMF_StateGet(exportState, itemName="precipitation_flux", itemType=itemType, _RC)
-    if (itemType==ESMF_STATEITEM_FIELD) then
-      call ESMF_StateGet(exportState, field=field, itemName="precipitation_flux", _RC)
-      call ESMF_FieldFill(field, dataFillScheme="sincos",  param1I4=0, param2I4=4, _RC)
-    endif
+    !call ESMF_StateGet(exportState, itemName="precipitation_flux", itemType=itemType, _RC)
+    !if (itemType==ESMF_STATEITEM_FIELD) then
+      !call ESMF_StateGet(exportState, field=field, itemName="precipitation_flux", _RC)
+      !call ESMF_FieldFill(field, dataFillScheme="sincos",  param1I4=0, param2I4=4, _RC)
+    !endif
 
-    call ESMF_StateGet(exportState, itemName="PHYEX", itemType=itemType, _RC)
-    if (itemType==ESMF_STATEITEM_FIELD) then
-      call ESMF_StateGet(exportState, field=field, itemName="PHYEX", _RC)
-      call ESMF_FieldFill(field, dataFillScheme="sincos", param1I4=0, param2I4=5, _RC)
-    endif
+    !call ESMF_StateGet(exportState, itemName="PHYEX", itemType=itemType, _RC)
+    !if (itemType==ESMF_STATEITEM_FIELD) then
+      !call ESMF_StateGet(exportState, field=field, itemName="PHYEX", _RC)
+      !call ESMF_FieldFill(field, dataFillScheme="sincos", param1I4=0, param2I4=5, _RC)
+    !endif
 
     ! write out the Fields in the exportState
     !call NUOPC_Write(exportState, fileNamePrefix="field_phy_export_datainit_", &
       !status=ESMF_FILESTATUS_REPLACE, relaxedFlag=.true., _RC)
 
-#endif
     call print_message("Realize Phys end")
+
+   !call NUOPC_SetAttribute(exportState, "FieldTransferPolicy", "transferAll", _RC)
+
+  end subroutine
+
+  subroutine RealizeAccepted(model, rc)
+    type(ESMF_GridComp)  :: model
+    integer, intent(out) :: rc
+
+    ! local variables
+    type(ESMF_State)          :: importState, exportState
+    type(ESMF_Grid)           :: gridIn
+    type(ESMF_Grid)           :: gridOut
+    type(ESMF_Field)          :: field, bobo
+    type(ESMF_StateItem_Flag) :: itemtype
+
+    call print_message("Realize Phys start")
+    rc = ESMF_SUCCESS
+
+    ! query for importState and exportState
+    call NUOPC_ModelGet(model, importState=importState, &
+      exportState=exportState, _RC)
+
+    ! create a Grid object for Fields
+    gridIn = ESMF_GridCreateNoPeriDimUfrm(maxIndex=(/100, 100/), &
+      minCornerCoord=(/0._ESMF_KIND_R8, -50._ESMF_KIND_R8/), &
+      maxCornerCoord=(/360._ESMF_KIND_R8, 90._ESMF_KIND_R8/), &
+      coordSys=ESMF_COORDSYS_CART, staggerLocList=(/ESMF_STAGGERLOC_CENTER/), &
+      _RC)
+    gridOut = gridIn ! for now out same as in
+
+    ! importable field: sea_surface_temperature
+    !call NUOPC_Realize(importState, grid=gridIn, &
+      !fieldName="sst", &
+      !selection="realize_connected_remove_others", _RC)
+
+    call NUOPC_Realize(importState,  &
+      fieldName="RADEX",_RC)
+
+    !bobo = ESMF_FieldCreate(gridOut, ESMF_TYPEKIND_R4,name="BOBO",ungriddedLBound=[1],ungriddedUBound=[72],_RC)
+    !call NUOPC_Realize(exportState, bobo, _RC)
+
+
+    !call ESMF_StateGet(exportState, itemName="precipitation_flux", itemType=itemType, _RC)
+    !if (itemType==ESMF_STATEITEM_FIELD) then
+      !call ESMF_StateGet(exportState, field=field, itemName="precipitation_flux", _RC)
+      !call ESMF_FieldFill(field, dataFillScheme="sincos",  param1I4=0, param2I4=4, _RC)
+    !endif
+
+    !call ESMF_StateGet(exportState, itemName="PHYEX", itemType=itemType, _RC)
+    !if (itemType==ESMF_STATEITEM_FIELD) then
+      !call ESMF_StateGet(exportState, field=field, itemName="PHYEX", _RC)
+      !call ESMF_FieldFill(field, dataFillScheme="sincos", param1I4=0, param2I4=5, _RC)
+    !endif
+
+    ! write out the Fields in the exportState
+    !call NUOPC_Write(exportState, fileNamePrefix="field_phy_export_datainit_", &
+      !status=ESMF_FILESTATUS_REPLACE, relaxedFlag=.true., _RC)
+
+    call print_message("Realize Phys end")
+
+   !call NUOPC_SetAttribute(exportState, "FieldTransferPolicy", "transferAll", _RC)
 
   end subroutine
 
@@ -175,7 +251,8 @@ module PHY
     type(ESMF_FileStatus_Flag)  :: status
     type(ESMF_StateItem_Flag)   :: itemType
     character(len=160)          :: msgString
-    real, pointer :: ptr3d(:,:,:)
+    real(kind=ESMF_KIND_R4), pointer :: ptr3d(:,:,:)
+    real(kind=ESMF_KIND_R8), pointer :: ptr2d(:,:)
 
     rc = ESMF_SUCCESS
 
@@ -199,18 +276,14 @@ module PHY
     call ESMF_LogWrite(msgString, ESMF_LOGMSG_INFO, _RC)
 
     ! update the export fields with data
-    call ESMF_StateGet(exportState, itemName="precipitation_flux", &
-      itemType=itemType, _RC)
-    if (itemType==ESMF_STATEITEM_FIELD) then
-      call ESMF_StateGet(exportState, field=field, itemName="precipitation_flux", _RC)
-      call ESMF_FieldFill(field, dataFillScheme="sincos", param1I4=step, param2I4=4, _RC)
-    endif
-    call ESMF_StateGet(exportState, itemName="PHYEX", &
-      itemType=itemType, _RC)
-    if (itemType==ESMF_STATEITEM_FIELD) then
-      call ESMF_StateGet(exportState, field=field, itemName="PHYEX", _RC)!
-      call ESMF_FieldFill(field, dataFillScheme="sincos", param1I4=step, param2I4=5, _RC)
-    endif
+    !call ESMF_StateGet(exportState, itemName="precipitation_flux", &
+      !itemType=itemType, _RC)
+    !if (itemType==ESMF_STATEITEM_FIELD) then
+      !call ESMF_StateGet(exportState, field=field, itemName="precipitation_flux", _RC)
+      !call ESMF_FieldFill(field, dataFillScheme="sincos", param1I4=step, param2I4=4, _RC)
+    !endif
+    call print_pointer_address(exportState,"phy exp",_RC)
+    call print_pointer_address(importState,"phy imp",_RC)
     call ESMF_StateGet(exportState, itemName="BOBO",field=field, _RC)
     call ESMF_FieldGet(field,farrayPtr=ptr3d,_RC)
     ptr3d=step
