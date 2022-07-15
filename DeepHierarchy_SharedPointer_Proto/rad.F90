@@ -183,7 +183,6 @@ module RAD
 
     call ESMF_ClockPrint(clock, options="currTime", &
       preString="------>Advancing RAD from: ", unit=msgString, _RC)
-    type(c_ptr) :: base_address 
     call ESMF_LogWrite(msgString, ESMF_LOGMSG_INFO, _RC)
 
     call ESMF_ClockPrint(clock, options="stopTime", &
