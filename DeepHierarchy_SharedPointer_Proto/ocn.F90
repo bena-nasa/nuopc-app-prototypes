@@ -156,9 +156,6 @@ module OCN
     !endif
 
     call print_message("Realize Ocean")
-    ! write out the Fields in the exportState
-    !call NUOPC_Write(exportState, fileNamePrefix="field_ocn_export_datainit_", &
-      !status=ESMF_FILESTATUS_REPLACE, relaxedFlag=.true., _RC)
 
   end subroutine
 
@@ -234,14 +231,6 @@ module OCN
     !call ESMF_StateGet(exportState, field=field, itemName="sst", _RC)
     !call ESMF_FieldFill(field, dataFillScheme="sincos", &
       !param1I4=step, param2I4=1, _RC)
-    ! write out the Fields in the exportState
-    !status=ESMF_FILESTATUS_OLD
-    !if (step==1) status=ESMF_FILESTATUS_REPLACE
-    !call NUOPC_Write(importState, fileNamePrefix="field_ocn_import_adv_", &
-      !timeslice=step, status=status, relaxedFlag=.true., _RC)
-    !call NUOPC_Write(exportState, fileNamePrefix="field_ocn_export_adv_", &
-      !timeslice=step, status=status, relaxedFlag=.true., _RC)
-    ! increment step counter
     step=step+1
     call print_message("Advance Ocean") 
 
