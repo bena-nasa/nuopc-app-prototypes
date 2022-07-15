@@ -77,7 +77,7 @@ module my_error_handling
             call ESMF_FieldGet(field,0,farrayptr=ptr3d_r8,_RC)
             base_address = c_loc(ptr3d_r8)
          end if
-         write(*,*)"Address of field: ",trim(fnames(i))," is ",transfer(base_address,0_C_INTPTR_T)
+         write(*,'(A,A10,A,I)')"Address of field: ",trim(fnames(i))," is ",transfer(base_address,0_C_INTPTR_T)
       enddo
    end subroutine
 
