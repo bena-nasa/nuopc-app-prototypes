@@ -51,8 +51,6 @@ module DYN
       !specRoutine=DataInitialize, _RC)
     call NUOPC_CompSpecialize(model, specLabel=label_Advance, &
       specRoutine=Advance, _RC)
-    !call NUOPC_CompAttributeSet(model, name="HierarchyProtocol", value="PushUpAllExportsAndUnsatisfiedImports", _RC)
-    !call NUOPC_CompAttributeSet(model, name="HierarchyProtocol", value="ConnectProvidedFields", _RC)
 
   end subroutine
 
@@ -173,32 +171,8 @@ module DYN
     call NUOPC_ModelGet(model, importState=importState, &
       exportState=exportState, _RC)
 
-    ! create a Grid object for Fields
-    !gridIn = ESMF_GridCreateNoPeriDimUfrm(maxIndex=(/100, 100/), &
-      !minCornerCoord=(/0._ESMF_KIND_R8, -50._ESMF_KIND_R8/), &
-      !maxCornerCoord=(/360._ESMF_KIND_R8, 90._ESMF_KIND_R8/), &
-      !coordSys=ESMF_COORDSYS_CART, staggerLocList=(/ESMF_STAGGERLOC_CENTER/), &
-      !_RC)
-    !gridOut = gridIn ! for now out same as in
-
-    ! importable field: sea_surface_temperature
-    !call NUOPC_Realize(importState, grid=gridIn, &
-      !fieldName="sst", &
-      !selection="realize_connected_remove_others", _RC)
-    ! importable field: PHYEX
-    !call NUOPC_Realize(importState, grid=gridIn, &
-      !fieldName="PHYEX", &
-      !selection="realize_connected_remove_others", _RC)
     call NUOPC_Realize(importState, fieldName="PHYEX", _RC)
     call NUOPC_Realize(importState, fieldName ='BOBO', _RC)
-
-    ! exportable field: air_pressure_at_sea_level
-    !call NUOPC_Realize(exportState, grid=gridOut, &
-      !fieldName="pmsl", typekind=ESMF_TYPEKIND_R4, &
-       !selection="realize_connected_remove_others", _RC)
-    !! exportable field: surface_net_downward_shortwave_flux
-    !call NUOPC_Realize(exportState, grid=gridOut, &
-      !fieldName="rsns", selection="realize_connected_remove_others", _RC)
 
   call print_message("Realize Dyn End")
   end subroutine
@@ -330,15 +304,6 @@ module DYN
     call ESMF_StateGet(importState, itemName="BOBO", field=field, _RC)
     call ESMF_FieldGet(field,farrayPtr=ptr3d,_RC)
     write(*,*)"Mr Burns bear BOBO is this old: ",maxval(ptr3d)
-    ! write out the Fields in the importState
-    !status=ESMF_FILESTATUS_OLD
-    !if (step==1) status=ESMF_FILESTATUS_REPLACE
-    !call NUOPC_Write(importState, fileNamePrefix="field_dyn_import_adv_", &
-      !timeslice=step, status=status, relaxedFlag=.true., _RC)
-    ! write out the Fields in the exportState
-    !call NUOPC_Write(exportState, fileNamePrefix="field_dyn_export_adv_", &
-      !timeslice=step, status=status, relaxedFlag=.true., _RC)
-    ! increment step counter
     step=step+1
     call print_message("Advance dyn")
 
