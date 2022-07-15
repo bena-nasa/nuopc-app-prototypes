@@ -141,12 +141,11 @@ module PHY
     !call NUOPC_Realize(exportState, grid=gridOut, &
       !fieldName="precipitation_flux", &
       !selection="realize_connected_remove_others", _RC)
+
     ! exportable field: PHYEX
     call NUOPC_Realize(exportState, grid=gridOut, &
       fieldName="PHYEX", &
       selection="realize_connected_remove_others", _RC)
-    !call NUOPC_Realize(importState,  &
-      !fieldName="RADEX",_RC)
 
     bobo = ESMF_FieldCreate(gridOut, ESMF_TYPEKIND_R4,name="BOBO",ungriddedLBound=[1],ungriddedUBound=[72],_RC)
     call NUOPC_Realize(exportState, bobo, _RC)
@@ -160,16 +159,6 @@ module PHY
       !call ESMF_StateGet(exportState, field=field, itemName="precipitation_flux", _RC)
       !call ESMF_FieldFill(field, dataFillScheme="sincos",  param1I4=0, param2I4=4, _RC)
     !endif
-
-    !call ESMF_StateGet(exportState, itemName="PHYEX", itemType=itemType, _RC)
-    !if (itemType==ESMF_STATEITEM_FIELD) then
-      !call ESMF_StateGet(exportState, field=field, itemName="PHYEX", _RC)
-      !call ESMF_FieldFill(field, dataFillScheme="sincos", param1I4=0, param2I4=5, _RC)
-    !endif
-
-    ! write out the Fields in the exportState
-    !call NUOPC_Write(exportState, fileNamePrefix="field_phy_export_datainit_", &
-      !status=ESMF_FILESTATUS_REPLACE, relaxedFlag=.true., _RC)
 
     call print_message("Realize Phys end")
 
@@ -203,37 +192,10 @@ module PHY
       _RC)
     gridOut = gridIn ! for now out same as in
 
-    ! importable field: sea_surface_temperature
-    !call NUOPC_Realize(importState, grid=gridIn, &
-      !fieldName="sst", &
-      !selection="realize_connected_remove_others", _RC)
-
     call NUOPC_Realize(importState,  &
       fieldName="RADEX",_RC)
 
-    !bobo = ESMF_FieldCreate(gridOut, ESMF_TYPEKIND_R4,name="BOBO",ungriddedLBound=[1],ungriddedUBound=[72],_RC)
-    !call NUOPC_Realize(exportState, bobo, _RC)
-
-
-    !call ESMF_StateGet(exportState, itemName="precipitation_flux", itemType=itemType, _RC)
-    !if (itemType==ESMF_STATEITEM_FIELD) then
-      !call ESMF_StateGet(exportState, field=field, itemName="precipitation_flux", _RC)
-      !call ESMF_FieldFill(field, dataFillScheme="sincos",  param1I4=0, param2I4=4, _RC)
-    !endif
-
-    !call ESMF_StateGet(exportState, itemName="PHYEX", itemType=itemType, _RC)
-    !if (itemType==ESMF_STATEITEM_FIELD) then
-      !call ESMF_StateGet(exportState, field=field, itemName="PHYEX", _RC)
-      !call ESMF_FieldFill(field, dataFillScheme="sincos", param1I4=0, param2I4=5, _RC)
-    !endif
-
-    ! write out the Fields in the exportState
-    !call NUOPC_Write(exportState, fileNamePrefix="field_phy_export_datainit_", &
-      !status=ESMF_FILESTATUS_REPLACE, relaxedFlag=.true., _RC)
-
     call print_message("Realize Phys end")
-
-   !call NUOPC_SetAttribute(exportState, "FieldTransferPolicy", "transferAll", _RC)
 
   end subroutine
 
