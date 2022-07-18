@@ -45,8 +45,6 @@ module OCN
       specRoutine=Advertise, _RC)
     call NUOPC_CompSpecialize(model, specLabel=label_RealizeProvided, &
       specRoutine=Realize, _RC)
-    !call NUOPC_CompSpecialize(model, specLabel=label_SetClock, &
-      !specRoutine=SetClock, _RC)
     call NUOPC_CompSpecialize(model, specLabel=label_Advance, &
       specRoutine=Advance, _RC)
     call NUOPC_CompSpecialize(model, specLabel=label_CheckImport, &
@@ -158,30 +156,6 @@ module OCN
     !endif
 
     call print_message("Realize Ocean")
-
-  end subroutine
-
-  !-----------------------------------------------------------------------------
-
-  subroutine SetClock(model, rc)
-    type(ESMF_GridComp)  :: model
-    integer, intent(out) :: rc
-
-    ! local variables
-    type(ESMF_Clock)              :: clock
-    type(ESMF_TimeInterval)       :: stabilityTimeStep
-
-    rc = ESMF_SUCCESS
-
-    ! query for clock
-    call NUOPC_ModelGet(model, modelClock=clock, _RC)
-
-    ! initialize internal clock
-    ! here: parent Clock and stability timeStep determine actual model timeStep
-    !TODO: stabilityTimeStep should be read in from configuation
-    !TODO: or computed from internal Grid information
-    call ESMF_TimeIntervalSet(stabilityTimeStep, m=15, _RC) ! 15 minute steps
-    call NUOPC_CompSetClock(model, clock, stabilityTimeStep, _RC)
 
   end subroutine
 
