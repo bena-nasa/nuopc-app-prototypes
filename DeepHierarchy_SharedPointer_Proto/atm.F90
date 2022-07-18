@@ -94,9 +94,11 @@ module ATM
     verbosity = ibset(verbosity,12) ! log info about run time-loop
 !    call NUOPC_CompAttributeSet(child, name="Verbosity", value=vString, _RC)
     call NUOPC_CompAttributeSet(child, name="Verbosity", value="high", _RC)
-    call NUOPC_DriverAddComp(driver, srcCompLabel="PHYDRV", dstCompLabel="DYN", &
-      compSetServicesRoutine=cplSS, comp=conn, _RC)
+    !call NUOPC_DriverAddComp(driver, srcCompLabel="PHYDRV", dstCompLabel="DYN", &
+      !compSetServicesRoutine=cplSS, comp=conn, _RC)
     call NUOPC_DriverAddComp(driver, srcCompLabel="DYN", dstCompLabel="PHYDRV", &
+      compSetServicesRoutine=cplSS, comp=conn, _RC)
+    call NUOPC_DriverAddComp(driver, srcCompLabel="PHYDRV", dstCompLabel="DYN", &
       compSetServicesRoutine=cplSS, comp=conn, _RC)
 
 #ifndef CUSTOMRUNSEQUENCE_on

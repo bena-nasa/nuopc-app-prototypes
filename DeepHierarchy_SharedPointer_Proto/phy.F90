@@ -49,6 +49,10 @@ module PHY
       specRoutine=RealizeAccepted, _RC)
     call NUOPC_CompSpecialize(model, specLabel=label_Advance, &
       specRoutine=Advance, _RC)
+    call NUOPC_CompSpecialize(model, specLabel=label_CheckImport, &
+      specRoutine=NUOPC_NoOp, _RC)
+    call NUOPC_CompSpecialize(model, specLabel=label_TimestampExport, &
+      specRoutine=NUOPC_NoOp, _RC)
 
   end subroutine
 
@@ -243,7 +247,7 @@ module PHY
     call ESMF_FieldGet(field,farrayPtr=ptr3d,_RC)
     ptr3d=step
     step=step+1
-    call print_message("Advance Phys")
+    call print_next_time(clock,"Advanced Phy to: ")
 
   end subroutine
 

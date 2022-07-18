@@ -49,8 +49,6 @@ module DYN
       specRoutine=DataInitialize, _RC)
     call NUOPC_CompSpecialize(model, specLabel=label_Advance, &
       specRoutine=Advance, _RC)
-    !call NUOPC_CompAttributeSet(model, name="HierarchyProtocol", value="PushUpAllExportsAndUnsatisfiedImports", _RC)
-    !call NUOPC_CompAttributeSet(model, name="HierarchyProtocol", value="ConnectProvidedFields", _RC)
 
   end subroutine
 
@@ -70,21 +68,12 @@ module DYN
     call NUOPC_ModelGet(model, importState=importState, &
       exportState=exportState, _RC)
 
-    ! Disabling the following macro, e.g. renaming to WITHIMPORTFIELDS_disable,
-    ! will result in a model component that does not advertise any importable
-    ! Fields. Use this if you want to drive the model independently.
-#define WITHIMPORTFIELDS
-#ifdef WITHIMPORTFIELDS
-    ! importable field: sea_surface_temperature
     call NUOPC_Advertise(importState, &
       StandardName="sea_surface_temperature", name="sst", _RC)
     ! importable field: PHYEX
     call NUOPC_Advertise(importState, StandardName="PHYEX", _RC)
     call NUOPC_Advertise(importState, StandardName="BOBO", _RC)
-#endif
 
-!#define WITHEXPORTFIELDS
-#ifdef WITHEXPORTFIELDS
     ! exportable field: air_pressure_at_sea_level
     call NUOPC_Advertise(exportState, &
       StandardName="air_pressure_at_sea_level", name="pmsl", &
@@ -96,7 +85,6 @@ module DYN
       StandardName="surface_net_downward_shortwave_flux", name="rsns", &
       SharePolicyField="share", _RC)
 
-#endif
 
   call print_message("Advertise dyn end")
   end subroutine
@@ -129,9 +117,6 @@ module DYN
       _RC)
     gridOut = gridIn ! for now out same as in
 
-#define WITHIMPORTFIELDS
-#ifdef WITHIMPORTFIELDS
-    ! importable field: sea_surface_temperature
     call NUOPC_Realize(importState, grid=gridIn, &
       fieldName="sst", &
       selection="realize_connected_remove_others", _RC)
@@ -141,10 +126,7 @@ module DYN
       selection="realize_connected_remove_others", _RC)
     bobo = ESMF_FieldCreate(gridIn,ESMF_TYPEKIND_R4, name="BOBO",ungriddedLBound=[1],ungriddedUBound=[72],_RC)
     call NUOPC_Realize(importState, bobo, _RC)
-#endif
 
-!#define WITHEXPORTFIELDS
-#ifdef WITHEXPORTFIELDS
     ! exportable field: air_pressure_at_sea_level
     call NUOPC_Realize(exportState, grid=gridOut, &
       fieldName="pmsl", typekind=ESMF_TYPEKIND_R4, &
@@ -152,7 +134,6 @@ module DYN
     !! exportable field: surface_net_downward_shortwave_flux
     call NUOPC_Realize(exportState, grid=gridOut, &
       fieldName="rsns", selection="realize_connected_remove_others", _RC)
-#endif
 
   call print_message("Realize Dyn End")
   end subroutine
@@ -219,10 +200,6 @@ module DYN
       call ESMF_FieldFill(field, dataFillScheme="sincos", param1I4=0, param2I4=3, _RC)
     endif
 
-    ! write out the Fields in the exportState
-    !call NUOPC_Write(exportState, fileNamePrefix="field_dyn_export_datainit_", &
-      !status=ESMF_FILESTATUS_REPLACE, relaxedFlag=.true., _RC)
-
     ! must explicitly set time stamp on all export fields
     call NUOPC_SetTimestamp(exportState, clock, _RC)
 
@@ -281,17 +258,8 @@ module DYN
     call ESMF_StateGet(importState, itemName="BOBO", field=field, _RC)
     call ESMF_FieldGet(field,farrayPtr=ptr3d,_RC)
     write(*,*)"Mr Burns bear BOBO is this old: ",maxval(ptr3d)
-    ! write out the Fields in the importState
-    status=ESMF_FILESTATUS_OLD
-    if (step==1) status=ESMF_FILESTATUS_REPLACE
-    !call NUOPC_Write(importState, fileNamePrefix="field_dyn_import_adv_", &
-      !timeslice=step, status=status, relaxedFlag=.true., _RC)
-    ! write out the Fields in the exportState
-    !call NUOPC_Write(exportState, fileNamePrefix="field_dyn_export_adv_", &
-      !timeslice=step, status=status, relaxedFlag=.true., _RC)
-    ! increment step counter
     step=step+1
-    call print_message("Advance dyn")
+    call print_next_time(clock,"Advanced Dyn to: ")
 
   end subroutine
 

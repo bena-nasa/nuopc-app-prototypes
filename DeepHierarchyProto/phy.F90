@@ -47,8 +47,6 @@ module PHY
       specRoutine=Realize, _RC)
     call NUOPC_CompSpecialize(model, specLabel=label_Advance, &
       specRoutine=Advance, _RC)
-    !call NUOPC_CompAttributeSet(model, name="HierarchyProtocol", value="PushUpAllExportsAndUnsatisfiedImports", _RC)
-    !call NUOPC_CompAttributeSet(model, name="HierarchyProtocol", value="ConnectProvidedFields", _RC)
 
   end subroutine
 
@@ -67,24 +65,14 @@ module PHY
     call NUOPC_ModelGet(model, importState=importState, &
       exportState=exportState, _RC)
 
-    ! Disabling the following macro, e.g. renaming to WITHIMPORTFIELDS_disable,
-    ! will result in a model component that does not advertise any importable
-    ! Fields. Use this if you want to drive the model independently.
-#define WITHIMPORTFIELDS
-#ifdef WITHIMPORTFIELDS
-    ! importable field: sea_surface_temperature
     call NUOPC_Advertise(importState, StandardName="sea_surface_temperature", name="sst", _RC)
-#endif
-
-#define WITHEXPORTFIELDS
-#ifdef WITHEXPORTFIELDS
 
     call NUOPC_Advertise(exportState, StandardName="precipitation_flux", _RC)
 
     call NUOPC_Advertise(exportState, StandardName="PHYEX", _RC)
 
     call NUOPC_Advertise(exportState, StandardName="BOBO", _RC)
-#endif
+
     call print_message("Advertise Phys")
 
   end subroutine
@@ -117,17 +105,10 @@ module PHY
       _RC)
     gridOut = gridIn ! for now out same as in
 
-#define WITHIMPORTFIELDS
-#ifdef WITHIMPORTFIELDS
-    ! importable field: sea_surface_temperature
     call NUOPC_Realize(importState, grid=gridIn, &
       fieldName="sst", &
       selection="realize_connected_remove_others", _RC)
-#endif
 
-#define WITHEXPORTFIELDS
-#ifdef WITHEXPORTFIELDS
-    ! exportable field: precipitation_flux
     call NUOPC_Realize(exportState, grid=gridOut, &
       fieldName="precipitation_flux", &
       selection="realize_connected_remove_others", _RC)
@@ -152,11 +133,6 @@ module PHY
       call ESMF_FieldFill(field, dataFillScheme="sincos", param1I4=0, param2I4=5, _RC)
     endif
 
-    ! write out the Fields in the exportState
-    !call NUOPC_Write(exportState, fileNamePrefix="field_phy_export_datainit_", &
-      !status=ESMF_FILESTATUS_REPLACE, relaxedFlag=.true., _RC)
-
-#endif
     call print_message("Realize Phys end")
 
   end subroutine
@@ -214,17 +190,8 @@ module PHY
     call ESMF_StateGet(exportState, itemName="BOBO",field=field, _RC)
     call ESMF_FieldGet(field,farrayPtr=ptr3d,_RC)
     ptr3d=step
-    ! write out the Fields in the importState
-    !status=ESMF_FILESTATUS_OLD
-    !if (step==1) status=ESMF_FILESTATUS_REPLACE
-    !call NUOPC_Write(importState, fileNamePrefix="field_phy_import_adv_", &
-      !timeslice=step, status=status, relaxedFlag=.true., _RC)
-    ! write out the Fields in the exportState
-    !call NUOPC_Write(exportState, fileNamePrefix="field_phy_export_adv_", &
-      !timeslice=step, status=status, relaxedFlag=.true., _RC)
-    ! increment step counter
     step=step+1
-    call print_message("Advance Phys")
+    call print_next_time(clock,"Advanced Phy to: ")
 
   end subroutine
 

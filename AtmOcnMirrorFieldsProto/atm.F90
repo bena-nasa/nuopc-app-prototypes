@@ -95,7 +95,7 @@ module ATM
       file=__FILE__)) &
       return  ! bail out
     call NUOPC_CompSpecialize(model, specLabel=label_Advance, &
-      specRoutine=Advance, rc=rc)
+      specRoutine=Advance, rc=rc) 
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) &

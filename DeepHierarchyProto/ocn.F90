@@ -45,12 +45,10 @@ module OCN
       specRoutine=Advertise, _RC)
     call NUOPC_CompSpecialize(model, specLabel=label_RealizeProvided, &
       specRoutine=Realize, _RC)
-    !call NUOPC_CompSpecialize(model, specLabel=label_SetClock, &
-      !specRoutine=SetClock, _RC)
+    call NUOPC_CompSpecialize(model, specLabel=label_SetClock, &
+      specRoutine=SetClock, _RC)
     call NUOPC_CompSpecialize(model, specLabel=label_Advance, &
       specRoutine=Advance, _RC)
-    !call NUOPC_CompAttributeSet(model, name="HierarchyProtocol", value="PushUpAllExportsAndUnsatisfiedImports", _RC)
-    !call NUOPC_CompAttributeSet(model, name="HierarchyProtocol", value="ConnectProvidedFields", _RC)
 
   end subroutine
 
@@ -69,11 +67,6 @@ module OCN
     call NUOPC_ModelGet(model, importState=importState, &
       exportState=exportState, _RC)
 
-    ! Disabling the following macro, e.g. renaming to WITHIMPORTFIELDS_disable,
-    ! will result in a model component that does not advertise any importable
-    ! Fields. Use this if you want to drive the model independently.
-#define WITHIMPORTFIELDS
-#ifdef WITHIMPORTFIELDS
     ! importable field: precipitation_flux
     call NUOPC_Advertise(importState, &
       StandardName="precipitation_flux", _RC)
@@ -83,7 +76,6 @@ module OCN
     !! importable field: surface_net_downward_shortwave_flux
     call NUOPC_Advertise(importState, &
       StandardName="surface_net_downward_shortwave_flux", name="rsns", _RC)
-#endif
 
     ! exportable field: sea_surface_temperature
     call NUOPC_Advertise(exportState, &
@@ -120,8 +112,6 @@ module OCN
       _RC)
     gridOut = gridIn ! for now out same as in
 
-!#define WITHIMPORTFIELDS
-#ifdef WITHIMPORTFIELDS
     ! importable field: precipitation_flux
     call NUOPC_Realize(importState, grid=gridIn, &
       fieldName="precipitation_flux", &
@@ -134,7 +124,6 @@ module OCN
     call NUOPC_Realize(importState, grid=gridIn, &
       fieldName="rsns", &
       selection="realize_connected_remove_others", _RC)
-#endif
 
     ! exportable field: sea_surface_temperature
     call NUOPC_Realize(exportState, grid=gridOut, &
@@ -149,9 +138,6 @@ module OCN
     endif
 
     call print_message("Realize Ocean")
-    ! write out the Fields in the exportState
-    !call NUOPC_Write(exportState, fileNamePrefix="field_ocn_export_datainit_", &
-      !status=ESMF_FILESTATUS_REPLACE, relaxedFlag=.true., _RC)
 
   end subroutine
 
@@ -170,11 +156,7 @@ module OCN
     ! query for clock
     call NUOPC_ModelGet(model, modelClock=clock, _RC)
 
-    ! initialize internal clock
-    ! here: parent Clock and stability timeStep determine actual model timeStep
-    !TODO: stabilityTimeStep should be read in from configuation
-    !TODO: or computed from internal Grid information
-    call ESMF_TimeIntervalSet(stabilityTimeStep, m=15, _RC) ! 15 minute steps
+    call ESMF_TimeIntervalSet(stabilityTimeStep, m=7, s=30,  _RC) ! 15 minute steps
     call NUOPC_CompSetClock(model, clock, stabilityTimeStep, _RC)
 
   end subroutine
@@ -227,13 +209,10 @@ module OCN
     ! write out the Fields in the exportState
     status=ESMF_FILESTATUS_OLD
     if (step==1) status=ESMF_FILESTATUS_REPLACE
-    !call NUOPC_Write(importState, fileNamePrefix="field_ocn_import_adv_", &
-      !timeslice=step, status=status, relaxedFlag=.true., _RC)
-    !call NUOPC_Write(exportState, fileNamePrefix="field_ocn_export_adv_", &
-      !timeslice=step, status=status, relaxedFlag=.true., _RC)
-    ! increment step counter
     step=step+1
-    call print_message("Advance Ocean") 
+
+    call ESMF_LogWrite(msgString, ESMF_LOGMSG_INFO, _RC)
+    call print_next_time(clock,"Advanced OCN to: ")
 
   end subroutine
 

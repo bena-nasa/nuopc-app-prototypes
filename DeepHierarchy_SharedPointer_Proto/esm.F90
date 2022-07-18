@@ -48,12 +48,11 @@ module ESM
     ! specialize driver
     call NUOPC_CompSpecialize(driver, specLabel=label_SetModelServices, &
       specRoutine=SetModelServices, _RC)
+    call NUOPC_CompSpecialize(driver, specLabel=label_SetRunSequence, &
+      specRoutine=SetRunSequence, _RC)
 
     ! set driver verbosity
     call NUOPC_CompAttributeSet(driver, name="Verbosity", value="high", _RC)
-    !call NUOPC_CompAttributeSet(driver, name="HierarchyProtocol", value="PushUpAllExportsAndUnsatisfiedImports", _RC)
-    !call NUOPC_CompAttributeSet(driver, name="HierarchyProtocol", value="ConnectProvidedFields", _RC)
-    !call NUOPC_CompAttributeSet(driver, name="HierarchyProtocol", value="Explorer", _RC)
 
   end subroutine
 
@@ -123,6 +122,35 @@ module ESM
 
   end subroutine
 
-  !-----------------------------------------------------------------------------
+  subroutine SetRunSequence(driver, rc)
+    type(ESMF_GridComp)  :: driver
+    integer, intent(out) :: rc
+
+    ! local variables
+    character(ESMF_MAXSTR)              :: name
+    type(NUOPC_FreeFormat)              :: runSeqFF
+
+    rc = ESMF_SUCCESS
+
+    ! query the driver for its name
+    call ESMF_GridCompGet(driver, name=name, _RC)
+
+
+    runSeqFF = NUOPC_FreeFormatCreate(stringList=(/ &
+      " @*            ",    &
+      "   ATM         ",    &
+      "   ATM -> OCN  ",    &
+      "   OCN         ",    &
+      "   OCN -> ATM  ",    &
+      " @             " /), &
+      _RC)
+
+    ! ingest FreeFormat run sequence
+    call NUOPC_DriverIngestRunSequence(driver, runSeqFF, _RC)
+
+    ! clean-up
+    call NUOPC_FreeFormatDestroy(runSeqFF, _RC)
+
+  end subroutine
 
 end module

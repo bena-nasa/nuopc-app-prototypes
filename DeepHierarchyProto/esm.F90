@@ -51,9 +51,6 @@ module ESM
 
     ! set driver verbosity
     call NUOPC_CompAttributeSet(driver, name="Verbosity", value="high", _RC)
-    !call NUOPC_CompAttributeSet(driver, name="HierarchyProtocol", value="PushUpAllExportsAndUnsatisfiedImports", _RC)
-    !call NUOPC_CompAttributeSet(driver, name="HierarchyProtocol", value="ConnectProvidedFields", _RC)
-    !call NUOPC_CompAttributeSet(driver, name="HierarchyProtocol", value="Explorer", _RC)
 
   end subroutine
 
@@ -69,6 +66,8 @@ module ESM
     type(ESMF_TimeInterval)       :: timeStep
     type(ESMF_Clock)              :: internalClock
     integer                       :: petCount, i
+    integer                       :: petCountATM, petCountOCN
+    integer, allocatable          :: petList(:)
     type(ESMF_GridComp)           :: comp
     type(ESMF_CplComp)            :: conn
     integer                       :: verbosity
@@ -82,8 +81,19 @@ module ESM
 
     ! get the petCount
     call ESMF_GridCompGet(driver, petCount=petCount, _RC)
+    ! split up the PETs between ATM and OCN
+    petCountOCN = min(2,petCount/2) ! don't give OCN more than 2 PETs
+    petCountATM = petCount - petCountOCN
 
-    call NUOPC_DriverAddComp(driver, "ATM", atmSS,  comp=comp, _RC)
+     ! SetServices for ATM with petList on first section of PETs
+    allocate(petList(petCountATM))
+    do i=1, petCountATM
+      petList(i) = i-1 ! PET labeling goes from 0 to petCount-1
+    enddo
+    call NUOPC_DriverAddComp(driver, "ATM", atmSS, petList=petList, &
+      comp=comp, _RC)
+    deallocate(petList)
+
     verbosity = 0 ! reset
     verbosity = ibset(verbosity,0)  ! log basic intro/extro and indentation
     verbosity = ibset(verbosity,9)  ! log info run phase
@@ -93,7 +103,17 @@ module ESM
 !    call NUOPC_CompAttributeSet(comp, name="Verbosity", value=vString, _RC)
     call NUOPC_CompAttributeSet(comp, name="Verbosity", value="high", _RC)
 
-    call NUOPC_DriverAddComp(driver, "OCN", ocnSS, ocnSVM, info=info, comp=comp, _RC)
+    ! SetServices for OCN with petList on second section of PETs
+    allocate(petList(petCountOCN))
+    do i=1, petCountOCN
+      petList(i) = petCountATM + i-1 ! PET labeling goes from 0 to petCount-1
+    enddo
+    call ESMF_InfoSet(info, key="/NUOPC/Hint/PePerPet/MaxCount", value=2, &
+      _RC)
+    call NUOPC_DriverAddComp(driver, "OCN", ocnSS, ocnSVM, info=info, &
+      petList=petList, comp=comp, _RC)
+    deallocate(petList)
+
     verbosity = 0 ! reset
     verbosity = ibset(verbosity,0)  ! log basic intro/extro and indentation
     verbosity = ibset(verbosity,9)  ! log info run phase
@@ -122,7 +142,5 @@ module ESM
     call ESMF_GridCompSet(driver, clock=internalClock, _RC)
 
   end subroutine
-
-  !-----------------------------------------------------------------------------
 
 end module

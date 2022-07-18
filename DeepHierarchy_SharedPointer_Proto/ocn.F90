@@ -49,8 +49,10 @@ module OCN
       !specRoutine=SetClock, _RC)
     call NUOPC_CompSpecialize(model, specLabel=label_Advance, &
       specRoutine=Advance, _RC)
-    !call NUOPC_CompAttributeSet(model, name="HierarchyProtocol", value="PushUpAllExportsAndUnsatisfiedImports", _RC)
-    !call NUOPC_CompAttributeSet(model, name="HierarchyProtocol", value="ConnectProvidedFields", _RC)
+    call NUOPC_CompSpecialize(model, specLabel=label_CheckImport, &
+      specRoutine=NUOPC_NoOp, _RC)
+    call NUOPC_CompSpecialize(model, specLabel=label_TimestampExport, &
+      specRoutine=NUOPC_NoOp, _RC)
 
   end subroutine
 
@@ -227,12 +229,8 @@ module OCN
       preString="---------------------> to: ", unit=msgString, _RC)
     call ESMF_LogWrite(msgString, ESMF_LOGMSG_INFO, _RC)
 
-    ! update the export field with data
-    !call ESMF_StateGet(exportState, field=field, itemName="sst", _RC)
-    !call ESMF_FieldFill(field, dataFillScheme="sincos", &
-      !param1I4=step, param2I4=1, _RC)
     step=step+1
-    call print_message("Advance Ocean") 
+    call print_next_time(clock,"Advanced OCN to: ")
 
   end subroutine
 

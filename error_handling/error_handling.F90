@@ -8,6 +8,7 @@ module my_error_handling
    public :: verify_return
    public :: print_message
    public :: print_pointer_address
+   public :: print_next_time
 
    contains
 
@@ -41,6 +42,32 @@ module my_error_handling
       call ESMF_VMGet(vm,localPet=localPet)
       write(*,'(I3,1x,A)')localPet,A
    end subroutine
+
+   subroutine print_next_time(clock,A)
+      type(ESMF_Clock), intent(in) :: clock
+      character(len=*), intent(in), optional :: A
+
+      type(ESMF_Time) :: current_time,next_time
+      type(ESMF_TimeInterval) :: dt
+      integer :: local_pet
+      type(ESMF_VM) :: vm
+      character(len=3) :: c3
+      character(len=160) :: msgString
+
+      call ESMF_VMGetGlobal(vm)
+      call ESMF_VMGet(vm,localPet=local_pet)
+      write(c3,'(I3)')local_pet
+ 
+      call ESMF_ClockGet(clock,currTime=current_time,timestep=dt)
+      next_time=current_time+dt
+      if (present(A)) then
+         call ESMF_TimePrint(next_time,preString=c3//" "//A,unit=msgString)
+      else
+         call ESMF_TimePrint(next_time,preString=c3,unit=msgString)
+      end if
+      write(*,'(A)')trim(msgString)
+   end subroutine
+ 
 
    subroutine print_pointer_address(state,message,rc)
       type(ESMF_State) :: state

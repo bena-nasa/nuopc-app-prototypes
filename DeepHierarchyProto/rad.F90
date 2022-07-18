@@ -161,7 +161,7 @@ module RAD
     call ESMF_LogWrite(msgString, ESMF_LOGMSG_INFO, _RC)
 
     step=step+1
-    call print_message("Advance Rad")
+    call print_next_time(clock,"Advanced Rad to: ")
 
   end subroutine
 

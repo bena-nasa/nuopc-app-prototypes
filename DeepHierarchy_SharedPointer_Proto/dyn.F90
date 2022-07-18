@@ -51,6 +51,10 @@ module DYN
       !specRoutine=DataInitialize, _RC)
     call NUOPC_CompSpecialize(model, specLabel=label_Advance, &
       specRoutine=Advance, _RC)
+    call NUOPC_CompSpecialize(model, specLabel=label_CheckImport, &
+      specRoutine=NUOPC_NoOp, _RC)
+    call NUOPC_CompSpecialize(model, specLabel=label_TimestampExport, &
+      specRoutine=NUOPC_NoOp, _RC)
 
   end subroutine
 
@@ -305,7 +309,7 @@ module DYN
     call ESMF_FieldGet(field,farrayPtr=ptr3d,_RC)
     write(*,*)"Mr Burns bear BOBO is this old: ",maxval(ptr3d)
     step=step+1
-    call print_message("Advance dyn")
+    call print_next_time(clock,"Advanced Dyn to: ")
 
   end subroutine
 
