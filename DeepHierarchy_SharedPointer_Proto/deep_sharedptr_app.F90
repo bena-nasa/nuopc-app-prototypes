@@ -27,7 +27,7 @@ program esmApp
   type(ESMF_GridComp)     :: esmComp
 
   ! Initialize ESMF
-  call ESMF_Initialize(logkindflag=ESMF_LOGKIND_MULTI, &
+  call ESMF_Initialize(logkindflag=ESMF_LOGKIND_MULTI, logAppendFlag=.false., &
     defaultCalkind=ESMF_CALKIND_GREGORIAN, _RC)
 
   call ESMF_LogSet(flush=.true., _RC)

@@ -9,8 +9,6 @@
 ! Licensed under the University of Illinois-NCSA License.
 !==============================================================================
 
-#define CUSTOMRUNSEQUENCE_on
-
 module phyDrv
 
   !-----------------------------------------------------------------------------
@@ -49,10 +47,6 @@ module phyDrv
     ! specialize driver
     call NUOPC_CompSpecialize(driver, specLabel=label_SetModelServices, &
       specRoutine=SetModelServices, _RC)
-#ifdef CUSTOMRUNSEQUENCE_on
-    !call NUOPC_CompSpecialize(driver, specLabel=label_SetRunSequence, &
-      !specRoutine=SetRunSequence, _RC)
-#endif
 
     ! set driver verbosity
     call NUOPC_CompAttributeSet(driver, name="Verbosity", value="high", _RC)
@@ -96,53 +90,6 @@ module phyDrv
     verbosity = ibset(verbosity,12) ! log info about run time-loop
 !    call NUOPC_CompAttributeSet(child, name="Verbosity", value=vString, _RC)
     call NUOPC_CompAttributeSet(child, name="Verbosity", value="high", _RC)
-
-#ifndef CUSTOMRUNSEQUENCE_on
-    ! SetServices for PHY2DYN
-    !call NUOPC_DriverAddComp(driver, srcCompLabel="PHY", dstCompLabel="DYN", &
-      !compSetServicesRoutine=cplSS, comp=conn, _RC)
-    !call NUOPC_CompAttributeSet(conn, name="Verbosity", value="high", _RC)
-#endif
-
-  end subroutine
-
-  !-----------------------------------------------------------------------------
-
-  subroutine SetRunSequence(driver, rc)
-    type(ESMF_GridComp)  :: driver
-    integer, intent(out) :: rc
-
-    ! local variables
-    character(ESMF_MAXSTR)              :: name
-    type(NUOPC_FreeFormat)              :: runSeqFF
-
-    rc = ESMF_SUCCESS
-
-    ! query the driver for its name
-    call ESMF_GridCompGet(driver, name=name, _RC)
-
-    ! set up free format run sequence
-    !runSeqFF = NUOPC_FreeFormatCreate(stringList=(/ &
-      !" @*            ",    &
-      !"   PHY -> RAD  ",    &
-      !"   RAD         ",    &
-      !"   PHY         ",    &
-      !" @             " /), &
-      !_RC)
-
-    runSeqFF = NUOPC_FreeFormatCreate(stringList=(/ &
-      " @*            ",    &
-      "   RAD         ",    &
-      "   PHY         ",    &
-      " @             " /), &
-      _RC)
-
-    ! ingest FreeFormat run sequence
-    !call NUOPC_DriverIngestRunSequence(driver, runSeqFF, autoAddConnectors=.true., _RC)
-    call NUOPC_DriverIngestRunSequence(driver, runSeqFF, autoAddConnectors=.false., _RC)
-
-    ! clean-up
-    call NUOPC_FreeFormatDestroy(runSeqFF, _RC)
 
   end subroutine
 

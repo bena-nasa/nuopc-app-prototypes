@@ -49,16 +49,9 @@ module ATM
     ! specialize driver
     call NUOPC_CompSpecialize(driver, specLabel=label_SetModelServices, &
       specRoutine=SetModelServices, _RC)
-#ifdef CUSTOMRUNSEQUENCE_on
-    !call NUOPC_CompSpecialize(driver, specLabel=label_SetRunSequence, &
-      !specRoutine=SetRunSequence, _RC)
-#endif
 
     ! set driver verbosity
     call NUOPC_CompAttributeSet(driver, name="Verbosity", value="high", _RC)
-    !call NUOPC_CompAttributeSet(driver, name="HierarchyProtocol", value="Explorer", _RC)
-    !call NUOPC_CompAttributeSet(driver, name="HierarchyProtocol", value="ConnectProvidedFields", _RC)
-    !call NUOPC_CompAttributeSet(driver, name="HierarchyProtocol", value="PushUpAllExportsAndUnsatisfiedImports", _RC)
 
   end subroutine
 
@@ -100,49 +93,6 @@ module ATM
       compSetServicesRoutine=cplSS, comp=conn, _RC)
     call NUOPC_DriverAddComp(driver, srcCompLabel="PHYDRV", dstCompLabel="DYN", &
       compSetServicesRoutine=cplSS, comp=conn, _RC)
-
-#ifndef CUSTOMRUNSEQUENCE_on
-    ! SetServices for PHY2DYN
-    !call NUOPC_DriverAddComp(driver, srcCompLabel="PHYDRV", dstCompLabel="DYN", &
-      !compSetServicesRoutine=cplSS, comp=conn, _RC)
-    !call NUOPC_DriverAddComp(driver, srcCompLabel="DYN", dstCompLabel="PHYDRV", &
-      !compSetServicesRoutine=cplSS, comp=conn, _RC)
-    !call NUOPC_DriverAddComp(driver, srcCompLabel="PHY", dstCompLabel="DYN", &
-      !compSetServicesRoutine=cplSS, comp=conn, _RC)
-    !call NUOPC_CompAttributeSet(conn, name="Verbosity", value="high", _RC)
-#endif
-
-  end subroutine
-
-  !-----------------------------------------------------------------------------
-
-  subroutine SetRunSequence(driver, rc)
-    type(ESMF_GridComp)  :: driver
-    integer, intent(out) :: rc
-
-    ! local variables
-    character(ESMF_MAXSTR)              :: name
-    type(NUOPC_FreeFormat)              :: runSeqFF
-
-    rc = ESMF_SUCCESS
-
-    ! query the driver for its name
-    call ESMF_GridCompGet(driver, name=name, _RC)
-
-    ! set up free format run sequence
-    runSeqFF = NUOPC_FreeFormatCreate(stringList=(/ &
-      " @*            ",    &
-      "   PHYDRV -> DYN  ",    &
-      "   DYN         ",    &
-      "   PHYDRV         ",    &
-      " @             " /), &
-      _RC)
-
-    ! ingest FreeFormat run sequence
-    call NUOPC_DriverIngestRunSequence(driver, runSeqFF, autoAddConnectors=.true., _RC)
-
-    ! clean-up
-    call NUOPC_FreeFormatDestroy(runSeqFF, _RC)
 
   end subroutine
 
