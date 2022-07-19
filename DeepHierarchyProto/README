@@ -64,6 +64,10 @@ Component hierarchy:
               |
               +- DYN
               |
-              +- PHY
+              +- PHYDRV
+                   |
+                   +- PHY
+                   |
+                   +- RAD
               
               
