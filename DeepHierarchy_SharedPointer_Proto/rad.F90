@@ -71,12 +71,7 @@ module RAD
     call NUOPC_ModelGet(model, importState=importState, &
       exportState=exportState, _RC)
 
-    !call NUOPC_Advertise(importState, StandardName="sea_surface_temperature", name="sst", &
-       !TransferOfferGeomObject="fcan provide", &
-       !SharePolicyField="not share", &
-       !SharePolicyGeomObject="not share", & 
-       !_RC)
-    call NUOPC_Advertise(importState, StandardName="PHYEX", &
+    call NUOPC_Advertise(importState, StandardName="MOISTEX", &
        TransferOfferGeomObject="cannot provide", &
        SharePolicyField="share", &
        SharePolicyGeomObject="not share", & 
@@ -154,7 +149,7 @@ module RAD
     gridOut = gridIn ! for now out same as in
 
     call NUOPC_Realize(importState,  &
-      fieldName="PHYEX",_RC)
+      fieldName="MOISTEX",_RC)
     call print_message("Realize Rad")
 
   end subroutine

@@ -24,7 +24,7 @@ module phyDrv
     driverSS             => SetServices
 
   use RAD, only: radSS => SetServices
-  use PHY, only: phySS => SetServices
+  use MOIST, only: moistSS => SetServices
 
   use NUOPC_Connector, only: cplSS => SetServices
 
@@ -84,29 +84,21 @@ module phyDrv
     verbosity = ibset(verbosity,11) ! log info about data dependency loop
     verbosity = ibset(verbosity,12) ! log info about run time-loop
     write(vString,"(I10)") verbosity
-!    call NUOPC_CompAttributeSet(child, name="Verbosity", value=vString, _RC)
     call NUOPC_CompAttributeSet(child, name="Verbosity", value="high", _RC)
 
     ! SetServices for PHY
-    call NUOPC_DriverAddComp(driver, "PHY", phySS,  &
+    call NUOPC_DriverAddComp(driver, "MOIST", moistSS,  &
       comp=child, _RC)
     verbosity = 0 ! reset
     verbosity = ibset(verbosity,0)  ! log basic intro/extro and indentation
     verbosity = ibset(verbosity,11) ! log info about data dependency loop
     verbosity = ibset(verbosity,12) ! log info about run time-loop
-!    call NUOPC_CompAttributeSet(child, name="Verbosity", value=vString, _RC)
     call NUOPC_CompAttributeSet(child, name="Verbosity", value="high", _RC)
 
-    call NUOPC_DriverAddComp(driver, srcCompLabel="PHY", dstCompLabel="RAD", &
+    call NUOPC_DriverAddComp(driver, srcCompLabel="MOIST", dstCompLabel="RAD", &
       compSetServicesRoutine=cplSS, comp=conn, _RC)
-    call NUOPC_DriverAddComp(driver, srcCompLabel="RAD", dstCompLabel="PHY", &
+    call NUOPC_DriverAddComp(driver, srcCompLabel="RAD", dstCompLabel="MOIST", &
       compSetServicesRoutine=cplSS, comp=conn, _RC)
-#ifndef CUSTOMRUNSEQUENCE_on
-    ! SetServices for PHY2DYN
-    !call NUOPC_DriverAddComp(driver, srcCompLabel="PHY", dstCompLabel="DYN", &
-      !compSetServicesRoutine=cplSS, comp=conn, _RC)
-    !call NUOPC_CompAttributeSet(conn, name="Verbosity", value="high", _RC)
-#endif
 
   end subroutine
 
@@ -137,7 +129,7 @@ module phyDrv
     runSeqFF = NUOPC_FreeFormatCreate(stringList=(/ &
       " @*            ",    &
       "   RAD         ",    &
-      "   PHY         ",    &
+      "   MOIST         ",    &
       " @             " /), &
       _RC)
 

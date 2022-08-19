@@ -37,7 +37,7 @@ program esmApp
   !-----------------------------------------------------------------------------
 
   ! need to add "PHYEX" to the NUOPC Field Dictionary
-  call NUOPC_FieldDictionaryAddEntry("PHYEX", canonicalUnits="1", _RC)
+  call NUOPC_FieldDictionaryAddEntry("MOISTEX", canonicalUnits="1", _RC)
   call NUOPC_FieldDictionaryAddEntry("RADEX", canonicalUnits="1", _RC)
   call NUOPC_FieldDictionaryAddEntry("BOBO", canonicalUnits="1", _RC)
 

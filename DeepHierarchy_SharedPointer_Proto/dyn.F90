@@ -81,8 +81,8 @@ module DYN
        SharePolicyField="not share", &
        SharePolicyGeomObject="not share", &
        _RC)
-    ! importable field: PHYEX
-    call NUOPC_Advertise(importState, StandardName="PHYEX", &
+    ! importable field: MOISTEX
+    call NUOPC_Advertise(importState, StandardName="MOISTEX", &
        TransferOfferGeomObject="cannot provide", &
        SharePolicyField="share", &
        SharePolicyGeomObject="not share", &
@@ -175,7 +175,7 @@ module DYN
     call NUOPC_ModelGet(model, importState=importState, &
       exportState=exportState, _RC)
 
-    call NUOPC_Realize(importState, fieldName="PHYEX", _RC)
+    call NUOPC_Realize(importState, fieldName="MOISTEX", _RC)
     call NUOPC_Realize(importState, fieldName ='BOBO', _RC)
 
   call print_message("Realize Dyn End")
