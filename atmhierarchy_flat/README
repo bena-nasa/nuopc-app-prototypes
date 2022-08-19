@@ -44,30 +44,20 @@ Output:
 Code structure:
   - Makefile    - Makefile that is based on the standard esmf.mk mechanism.
   - esmApp.F90  - Main application.
-  - esm.F90     - Main driver, specializing generic NUOPC_Driver, ATM+OCN as
-                  child component.
-  - ocn.F90     - The OCN component, specializing generic NUOPC_Model.
-  - atm.F90     - The ATM component, specializing generic NUOPC_Driver, DYN+PHYDRV
+  - atm.F90     - The ATM component, specializing generic NUOPC_Driver, DYN+MOIST+RAD
                   as child components
   - dyn.F90     - The DYN component, specializing generic NUOPC_Model.
-  - phydrv.F90  - The PHYDRV component, specializing generic NUOPC_Driver, DYN+PHY
-  - phy.F90     - The PHY component, specializing generic NUOPC_Model.
+  - moist.F90     - The MOIST component, specializing generic NUOPC_Model.
   - rad.F90     - The RAD component, specializing generic NUOPC_Model.
 
 Component hierarchy:
 
-    esmApp
+    atmhierarchy
       |
-      +- esm
+      +- ATM
           |
-          +- OCN
+          +- DYN
           |
-          +- ATM
-              |
-              +- DYN
-              |
-              +- PHYDRV
-                   |
-                   +- PHY
-                   |
-                   +- RAD
+          +- RAD
+          |
+          +- MOIST
