@@ -50,24 +50,20 @@ Code structure:
   - atm.F90     - The ATM component, specializing generic NUOPC_Driver, DYN+PHYDRV
                   as child components
   - dyn.F90     - The DYN component, specializing generic NUOPC_Model.
-  - phydrv.F90  - The PHYDRV component, specializing generic NUOPC_Driver, DYN+PHY
-  - phy.F90     - The PHY component, specializing generic NUOPC_Model.
+  - phy.F90  - The PHY component, specializing generic NUOPC_Driver, MOIST+RAD
+  - moist.F90     - The MOIST component, specializing generic NUOPC_Model.
   - rad.F90     - The RAD component, specializing generic NUOPC_Model.
 
 Component hierarchy:
 
-    esmApp
+    atmhierarchy
       |
-      +- esm
+      +- ATM
           |
-          +- OCN
+          +- DYN
           |
-          +- ATM
+          +- PHY
               |
-              +- DYN
+              +- RAD
               |
-              +- PHYDRV
-                   |
-                   +- PHY
-                   |
-                   +- RAD
+              +- MOIST
