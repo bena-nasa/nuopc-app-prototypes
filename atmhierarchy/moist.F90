@@ -16,6 +16,7 @@ module MOIST
   !-----------------------------------------------------------------------------
 
   use my_error_handling
+  use MAPL_redu
   use ESMF
   use NUOPC
   use NUOPC_Model, &
@@ -44,7 +45,7 @@ module MOIST
     call NUOPC_CompSpecialize(model, specLabel=label_Advertise, &
       specRoutine=Advertise, _RC)
     call NUOPC_CompSpecialize(model, specLabel=label_RealizeProvided, &
-      specRoutine=Realize, _RC)
+      specRoutine=RealizeProvided, _RC)
     call NUOPC_CompSpecialize(model, specLabel=label_RealizeAccepted, &
       specRoutine=RealizeAccepted, _RC)
     call NUOPC_CompSpecialize(model, specLabel=label_Advance, &
@@ -72,20 +73,20 @@ module MOIST
       exportState=exportState, _RC)
 
     call NUOPC_Advertise(exportState, StandardName="MOISTEX", &
-       TransferOfferGeomObject="will provide", &
+       TransferOfferGeomObject="can provide", &
        SharePolicyField="share", &
-       SharePolicyGeomObject="not share", &
+       SharePolicyGeomObject="share", &
        _RC)
     call NUOPC_Advertise(importState, StandardName="RADEX", &
-       TransferOfferGeomObject="cannot provide", &
+       TransferOfferGeomObject="can provide", &
        SharePolicyField="share", &
-       SharePolicyGeomObject="not share", &
+       SharePolicyGeomObject="share", &
        _RC)
 
     call NUOPC_Advertise(exportState, StandardName="BOBO", &
-       TransferOfferGeomObject="will provide", &
+       TransferOfferGeomObject="can provide", &
        SharePolicyField="share", &
-       SharePolicyGeomObject="not share", &
+       SharePolicyGeomObject="share", &
        _RC)
     call print_message("Advertise MOIST")
 
@@ -93,44 +94,28 @@ module MOIST
 
   !-----------------------------------------------------------------------------
 
-  subroutine Realize(model, rc)
+  subroutine RealizeProvided(model, rc)
     type(ESMF_GridComp)  :: model
     integer, intent(out) :: rc
 
     ! local variables
     type(ESMF_State)          :: importState, exportState
-    type(ESMF_Grid)           :: gridIn
-    type(ESMF_Grid)           :: gridOut
-    type(ESMF_Field)          :: field, bobo
-    type(ESMF_StateItem_Flag) :: itemtype
+    type(ESMF_Grid)           :: grid
 
-    call print_message("Realize MOIST start")
+    call print_message("RealizeProvided MOIST start")
     rc = ESMF_SUCCESS
 
-    ! query for importState and exportState
     call NUOPC_ModelGet(model, importState=importState, &
       exportState=exportState, _RC)
 
-    ! create a Grid object for Fields
-    gridIn = ESMF_GridCreateNoPeriDimUfrm(maxIndex=(/100, 100/), &
-      minCornerCoord=(/0._ESMF_KIND_R8, -50._ESMF_KIND_R8/), &
-      maxCornerCoord=(/360._ESMF_KIND_R8, 90._ESMF_KIND_R8/), &
-      coordSys=ESMF_COORDSYS_CART, staggerLocList=(/ESMF_STAGGERLOC_CENTER/), &
-      _RC)
-    gridOut = gridIn ! for now out same as in
+    grid = make_a_grid(_RC)
 
-    ! exportable field: MOISTEX
-    call NUOPC_Realize(exportState, grid=gridOut, &
-      fieldName="MOISTEX", &
-      selection="realize_connected_remove_others", _RC)
-
-    bobo = ESMF_FieldCreate(gridOut, ESMF_TYPEKIND_R4,name="BOBO",ungriddedLBound=[1],ungriddedUBound=[72],_RC)
-    call NUOPC_Realize(exportState, bobo, _RC)
-
-
-    call print_message("Realize MOISTs end")
-
-   !call NUOPC_SetAttribute(exportState, "FieldTransferPolicy", "transferAll", _RC)
+    ! exports
+    call MAPL_realize_provided_field(exportState,grid,"BOBO",lm=72,_RC)
+    call MAPL_realize_provided_field(exportState,grid,"MOISTEX",_RC)
+    ! imports 
+    call MAPL_realize_provided_field(importState,grid,"RADEX",_RC)
+    call print_message("RealizeProvided MOIST end")
 
   end subroutine
 
@@ -145,25 +130,16 @@ module MOIST
     type(ESMF_Field)          :: field, bobo
     type(ESMF_StateItem_Flag) :: itemtype
 
-    call print_message("Realize MOIST start")
+    call print_message("RealizeAccepted MOIST start")
     rc = ESMF_SUCCESS
 
     ! query for importState and exportState
     call NUOPC_ModelGet(model, importState=importState, &
       exportState=exportState, _RC)
 
-    ! create a Grid object for Fields
-    gridIn = ESMF_GridCreateNoPeriDimUfrm(maxIndex=(/100, 100/), &
-      minCornerCoord=(/0._ESMF_KIND_R8, -50._ESMF_KIND_R8/), &
-      maxCornerCoord=(/360._ESMF_KIND_R8, 90._ESMF_KIND_R8/), &
-      coordSys=ESMF_COORDSYS_CART, staggerLocList=(/ESMF_STAGGERLOC_CENTER/), &
-      _RC)
-    gridOut = gridIn ! for now out same as in
+    call MAPL_realize_accepted(importState,exportState,_RC)
 
-    call NUOPC_Realize(importState,  &
-      fieldName="RADEX",_RC)
-
-    call print_message("Realize MOIST end")
+    call print_message("RealizeAccpted MOIST end")
 
   end subroutine
 

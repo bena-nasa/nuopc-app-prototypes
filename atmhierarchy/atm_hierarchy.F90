@@ -48,15 +48,19 @@ program esmApp
 
   ! SetServices for the earth system Component
   call ESMF_GridCompSetServices(esmComp, atmSS, userRc=urc, _RC)
+  _VERIFY(uRc)
 
   ! Call Initialize for the earth system Component
   call ESMF_GridCompInitialize(esmComp, userRc=urc, _RC)
+  _VERIFY(uRc)
 
   ! Call Run  for earth the system Component
   call ESMF_GridCompRun(esmComp, userRc=urc, _RC)
+  _VERIFY(uRc)
 
   ! Call Finalize for the earth system Component
   call ESMF_GridCompFinalize(esmComp, userRc=urc, _RC)
+  _VERIFY(uRc)
 
   ! Destroy the earth system Component
   call ESMF_GridCompDestroy(esmComp, _RC)

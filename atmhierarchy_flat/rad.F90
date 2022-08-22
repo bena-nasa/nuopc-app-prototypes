@@ -16,6 +16,7 @@ module RAD
   !-----------------------------------------------------------------------------
 
   use my_error_handling
+  use MAPL_redu
   use ESMF
   use NUOPC
   use NUOPC_Model, &
@@ -44,7 +45,7 @@ module RAD
     call NUOPC_CompSpecialize(model, specLabel=label_Advertise, &
       specRoutine=Advertise, _RC)
     call NUOPC_CompSpecialize(model, specLabel=label_RealizeProvided, &
-      specRoutine=Realize, _RC)
+      specRoutine=RealizeProvided, _RC)
     call NUOPC_CompSpecialize(model, specLabel=label_RealizeAccepted, &
       specRoutine=RealizeAccepted, _RC)
     call NUOPC_CompSpecialize(model, specLabel=label_Advance, &
@@ -72,14 +73,14 @@ module RAD
       exportState=exportState, _RC)
 
     call NUOPC_Advertise(importState, StandardName="MOISTEX", &
-       TransferOfferGeomObject="cannot provide", &
+       TransferOfferGeomObject="can provide", &
        SharePolicyField="share", &
-       SharePolicyGeomObject="not share", & 
+       SharePolicyGeomObject="share", & 
        _RC)
     call NUOPC_Advertise(exportState, StandardName="RADEX", &
-       TransferOfferGeomObject="will provide", &
+       TransferOfferGeomObject="can provide", &
        SharePolicyField="share", &
-       SharePolicyGeomObject="not share", &
+       SharePolicyGeomObject="share", &
        _RC)
 
     call print_message("Advertise Rad")
@@ -88,35 +89,29 @@ module RAD
 
   !-----------------------------------------------------------------------------
 
-  subroutine Realize(model, rc)
+  subroutine RealizeProvided(model, rc)
     type(ESMF_GridComp)  :: model
     integer, intent(out) :: rc
 
     ! local variables
     type(ESMF_State)          :: importState, exportState
-    type(ESMF_Grid)           :: gridIn
-    type(ESMF_Grid)           :: gridOut
-    type(ESMF_Field)          :: field
-    type(ESMF_StateItem_Flag) :: itemtype
+    type(ESMF_Grid)           :: grid
+
+    call print_message("RealizeProvided Rad Start")
 
     rc = ESMF_SUCCESS
 
-    ! query for importState and exportState
     call NUOPC_ModelGet(model, importState=importState, &
       exportState=exportState, _RC)
 
     ! create a Grid object for Fields
-    gridIn = ESMF_GridCreateNoPeriDimUfrm(maxIndex=(/100, 100/), &
-      minCornerCoord=(/0._ESMF_KIND_R8, -50._ESMF_KIND_R8/), &
-      maxCornerCoord=(/360._ESMF_KIND_R8, 90._ESMF_KIND_R8/), &
-      coordSys=ESMF_COORDSYS_CART, staggerLocList=(/ESMF_STAGGERLOC_CENTER/), &
-      _RC)
-    gridOut = gridIn ! for now out same as in
+    grid = make_a_grid(_RC)
 
-    call NUOPC_Realize(exportState, grid=gridOut, &
-      fieldName="RADEX", &
-      selection="realize_connected_remove_others", _RC)
-    call print_message("Realize Rad")
+    call MAPL_realize_provided_field(importState,grid,"MOISTEX",_RC)
+
+    call MAPL_realize_provided_field(exportState,grid,"RADEX",_RC)
+
+    call print_message("RealizeProvided Rad End")
 
   end subroutine
 
@@ -126,28 +121,16 @@ module RAD
 
     ! local variables
     type(ESMF_State)          :: importState, exportState
-    type(ESMF_Grid)           :: gridIn
-    type(ESMF_Grid)           :: gridOut
-    type(ESMF_Field)          :: field
-    type(ESMF_StateItem_Flag) :: itemtype
 
+    call print_message("RealizeAccepted Rad Start")
     rc = ESMF_SUCCESS
 
-    ! query for importState and exportState
     call NUOPC_ModelGet(model, importState=importState, &
       exportState=exportState, _RC)
 
-    ! create a Grid object for Fields
-    gridIn = ESMF_GridCreateNoPeriDimUfrm(maxIndex=(/100, 100/), &
-      minCornerCoord=(/0._ESMF_KIND_R8, -50._ESMF_KIND_R8/), &
-      maxCornerCoord=(/360._ESMF_KIND_R8, 90._ESMF_KIND_R8/), &
-      coordSys=ESMF_COORDSYS_CART, staggerLocList=(/ESMF_STAGGERLOC_CENTER/), &
-      _RC)
-    gridOut = gridIn ! for now out same as in
+    call MAPL_realize_accepted(importState,exportState,_RC)
 
-    call NUOPC_Realize(importState,  &
-      fieldName="MOISTEX",_RC)
-    call print_message("Realize Rad")
+    call print_message("RealizeAccepted Rad End")
 
   end subroutine
 
