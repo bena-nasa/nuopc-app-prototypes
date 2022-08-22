@@ -2,31 +2,40 @@
 !==============================================================================
 ! Earth System Modeling Framework
 ! Copyright 2002-2022, University Corporation for Atmospheric Research,
-! Massachusetts Institute of Technology, GeoMOISTsical Fluid Dynamics
+! Massachusetts Institute of Technology, GeoPHYSICSsical Fluid Dynamics
 ! Laboratory, University of Michigan, National Centers for Environmental
 ! Prediction, Los Alamos National Laboratory, Argonne National Laboratory,
 ! NASA Goddard Space Flight Center.
 ! Licensed under the University of Illinois-NCSA License.
 !==============================================================================
 
-module MOIST
+module PHYSICS
 
   !-----------------------------------------------------------------------------
-  ! MOIST Component.
+  ! PHYSICS Component.
   !-----------------------------------------------------------------------------
 
   use my_error_handling
   use MAPL_redu
   use ESMF
   use NUOPC
-  use NUOPC_Model, &
-    modelSS      => SetServices
+  use NUOPC_Model, modelSS      => SetServices
 
   implicit none
 
   private
 
   public SetServices
+  public physics_internal
+  public physics_internal_wrapper
+
+  type physics_internal
+     type(ESMF_GridComp) :: moist
+     type(ESMF_GridComp) :: rad
+  end type
+  type physics_internal_wrapper
+     type(physics_internal), pointer :: ptr
+  end type
 
   !-----------------------------------------------------------------------------
   contains
@@ -36,10 +45,18 @@ module MOIST
     type(ESMF_GridComp)  :: model
     integer, intent(out) :: rc
 
+    type(physics_internal), pointer :: my_internal
+    type(physics_internal_wrapper) :: wrap
+
     rc = ESMF_SUCCESS
 
     ! derive from NUOPC_Model
     call NUOPC_CompDerive(model, modelSS, _RC)
+
+    ! hook to my private state
+    allocate(my_internal)
+    wrap%ptr => my_internal
+    call ESMF_UserCompSetInternalState(model,'PHYSICS_INTERNAL',wrap,_RC)
 
     ! specialize model
     call NUOPC_CompSpecialize(model, specLabel=label_Advertise, &
@@ -72,24 +89,6 @@ module MOIST
     call NUOPC_ModelGet(model, importState=importState, &
       exportState=exportState, _RC)
 
-    call NUOPC_Advertise(exportState, StandardName="MOISTEX", &
-       TransferOfferGeomObject="can provide", &
-       SharePolicyField="share", &
-       SharePolicyGeomObject="share", &
-       _RC)
-    call NUOPC_Advertise(importState, StandardName="RADEX", &
-       TransferOfferGeomObject="can provide", &
-       SharePolicyField="share", &
-       SharePolicyGeomObject="share", &
-       _RC)
-
-    call NUOPC_Advertise(exportState, StandardName="BOBO", &
-       TransferOfferGeomObject="can provide", &
-       SharePolicyField="share", &
-       SharePolicyGeomObject="share", &
-       _RC)
-    call print_message("Advertise MOIST")
-
   end subroutine
 
   !-----------------------------------------------------------------------------
@@ -102,7 +101,7 @@ module MOIST
     type(ESMF_State)          :: importState, exportState
     type(ESMF_Grid)           :: grid
 
-    call print_message("RealizeProvided MOIST start")
+    call print_message("RealizeProvided PHYSICS start")
     rc = ESMF_SUCCESS
 
     call NUOPC_ModelGet(model, importState=importState, &
@@ -110,12 +109,7 @@ module MOIST
 
     grid = make_a_grid(_RC)
 
-    ! exports
-    call MAPL_realize_provided_field(exportState,grid,"BOBO",lm=72,_RC)
-    call MAPL_realize_provided_field(exportState,grid,"MOISTEX",_RC)
-    ! imports 
-    call MAPL_realize_provided_field(importState,grid,"RADEX",_RC)
-    call print_message("RealizeProvided MOIST end")
+    call print_message("RealizeProvided PHYSICS end")
 
   end subroutine
 
@@ -126,7 +120,7 @@ module MOIST
     ! local variables
     type(ESMF_State)          :: importState, exportState
 
-    call print_message("RealizeAccepted MOIST start")
+    call print_message("RealizeAccepted PHYSICS start")
     rc = ESMF_SUCCESS
 
     ! query for importState and exportState
@@ -135,7 +129,7 @@ module MOIST
 
     call MAPL_realize_accepted(importState,exportState,_RC)
 
-    call print_message("RealizeAccpted MOIST end")
+    call print_message("RealizeAccpted PHYSICS end")
 
   end subroutine
 
@@ -156,34 +150,33 @@ module MOIST
     real(kind=ESMF_KIND_R4), pointer :: ptr3d(:,:,:)
     real(kind=ESMF_KIND_R8), pointer :: ptr2d(:,:)
 
+    type(physics_internal_wrapper) :: wrap
+    type(physics_internal), pointer :: physics_int
+    type(ESMF_State) :: moist_import,moist_export,rad_import,rad_export
+
     rc = ESMF_SUCCESS
 
     ! query for clock, importState and exportState
     call NUOPC_ModelGet(model, modelClock=clock, importState=importState, &
       exportState=exportState, _RC)
 
-    ! HERE THE MODEL ADVANCES: currTime -> currTime + timeStep
-
-    ! Because of the way that the internal Clock was set by default,
-    ! its timeStep is equal to the parent timeStep. As a consequence the
-    ! currTime + timeStep is equal to the stopTime of the internal Clock
-    ! for this call of the Advance() routine.
+    call ESMF_USerCompGetInternalState(model,'PHYSICS_INTERNAL',wrap,_RC)
+    physics_int => wrap%ptr
 
     call ESMF_ClockPrint(clock, options="currTime", &
-      preString="------>Advancing MOIST from: ", unit=msgString, _RC)
+      preString="------>Advancing PHYSICS from: ", unit=msgString, _RC)
     call ESMF_LogWrite(msgString, ESMF_LOGMSG_INFO, _RC)
 
     call ESMF_ClockPrint(clock, options="stopTime", &
       preString="---------------------> to: ", unit=msgString, _RC)
     call ESMF_LogWrite(msgString, ESMF_LOGMSG_INFO, _RC)
 
-    call print_pointer_address(exportState,"MOIST exp",_RC)
-    call print_pointer_address(importState,"MOIST imp",_RC)
-    call ESMF_StateGet(exportState, itemName="BOBO",field=field, _RC)
-    call ESMF_FieldGet(field,farrayPtr=ptr3d,_RC)
-    ptr3d=step
-    step=step+1
-    call print_next_time(clock,"Advanced MOIST to: ")
+    call NUOPC_ModelGet(physics_int%moist,importState=moist_import,exportState=moist_export,_RC)
+    call NUOPC_ModelGet(physics_int%rad,importState=rad_import,exportState=rad_export,_RC)
+    call ESMF_GridCompRun(physics_int%moist,importState=moist_import,exportState=moist_export,_RC)
+    call ESMF_GridCompRun(physics_int%rad,importState=rad_import,exportState=rad_export,_RC)
+
+    call print_next_time(clock,"Advanced PHYSICS to: ")
 
   end subroutine
 
