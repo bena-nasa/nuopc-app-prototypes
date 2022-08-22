@@ -75,13 +75,13 @@ module MAPL_redu
 
       call ESMF_StateGet(state,stateIntent=state_intent,_RC)
       if (state_intent == ESMF_STATEINTENT_EXPORT) then
-         search_for = "ProducerTransferOffer" 
+         search_for = "ProducerTransferAction" 
       else if (state_intent == ESMF_STATEINTENT_IMPORT) then
-         search_for = "ConsumerTransferOffer"
+         search_for = "ConsumerTransferAction"
       end if 
+      write(*,*)"Trying to realize a provided field: ",trim(name)
       call ESMF_StateGet(state,field=old_field,itemName=trim(name),_RC)
       call NUOPC_GetAttribute(old_field,name=trim(search_for), value=transfer_action,_RC)
-      write(*,*)"Trying to realize a provided field: ",trim(name)
       write(*,*)"With transfer action: ",trim(transfer_action)
       if (trim(transfer_action) == "provide") then
          write(*,*)"Found provided so realize: ",trim(name)

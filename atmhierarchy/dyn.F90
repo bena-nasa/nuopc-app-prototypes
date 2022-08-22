@@ -86,6 +86,12 @@ module DYN
        SharePolicyGeomObject="share", &
        _RC)
 
+    call NUOPC_Advertise(exportState, StandardName="DYNEX", &
+       TransferOfferGeomObject="can provide", &
+       SharePolicyField="share", &
+       SharePolicyGeomObject="share", &
+       _RC)
+
   call print_message("Advertise dyn end")
   end subroutine
 
@@ -113,6 +119,7 @@ module DYN
 
     call MAPL_realize_provided_field(importState,grid,"BOBO",lm=72,_RC)
     call MAPL_realize_provided_field(importState,grid,"MOISTEX",_RC)
+    call MAPL_realize_provided_field(exportState,grid,"DYNEX",_RC)
 
   call print_message("RealizeProvided Dyn End")
   end subroutine

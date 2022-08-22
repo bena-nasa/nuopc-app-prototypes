@@ -102,7 +102,7 @@ module MOIST
     type(ESMF_State)          :: importState, exportState
     type(ESMF_Grid)           :: grid
 
-    call print_message("RealizeProvided MOIST start")
+    call print_message("Reanot lizeProvided MOIST start")
     rc = ESMF_SUCCESS
 
     call NUOPC_ModelGet(model, importState=importState, &
@@ -125,10 +125,6 @@ module MOIST
 
     ! local variables
     type(ESMF_State)          :: importState, exportState
-    type(ESMF_Grid)           :: gridIn
-    type(ESMF_Grid)           :: gridOut
-    type(ESMF_Field)          :: field, bobo
-    type(ESMF_StateItem_Flag) :: itemtype
 
     call print_message("RealizeAccepted MOIST start")
     rc = ESMF_SUCCESS

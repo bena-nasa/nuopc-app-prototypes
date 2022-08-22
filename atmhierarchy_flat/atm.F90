@@ -49,8 +49,8 @@ module ATM
     ! specialize driver
     call NUOPC_CompSpecialize(driver, specLabel=label_SetModelServices, &
       specRoutine=SetModelServices, _RC)
-    call NUOPC_CompSpecialize(driver, specLabel=label_SetRunSequence, &
-      specRoutine=SetRunSequence, _RC)
+    !call NUOPC_CompSpecialize(driver, specLabel=label_SetRunSequence, &
+      !specRoutine=SetRunSequence, _RC)
 
     ! set driver verbosity
     call NUOPC_CompAttributeSet(driver, name="Verbosity", value="high", _RC)
@@ -83,14 +83,14 @@ module ATM
     ! get the petCount
     call ESMF_GridCompGet(driver, petCount=petCount, _RC)
 
-    !call NUOPC_DriverAddComp(driver, "DYN", DYNSS,  comp=comp, _RC)
-    !verbosity = 0 ! reset
-    !verbosity = ibset(verbosity,0)  ! log basic intro/extro and indentation
-    !verbosity = ibset(verbosity,9)  ! log info run phase
-    !verbosity = ibset(verbosity,11) ! log info about data dependency loop
-    !verbosity = ibset(verbosity,12) ! log info about run time-loop
-    !write(vString,"(I10)") verbosity
-    !call NUOPC_CompAttributeSet(comp, name="Verbosity", value="high", _RC)
+    call NUOPC_DriverAddComp(driver, "DYN", DYNSS,  comp=comp, _RC)
+    verbosity = 0 ! reset
+    verbosity = ibset(verbosity,0)  ! log basic intro/extro and indentation
+    verbosity = ibset(verbosity,9)  ! log info run phase
+    verbosity = ibset(verbosity,11) ! log info about data dependency loop
+    verbosity = ibset(verbosity,12) ! log info about run time-loop
+    write(vString,"(I10)") verbosity
+    call NUOPC_CompAttributeSet(comp, name="Verbosity", value="high", _RC)
 
     call NUOPC_DriverAddComp(driver, "RAD", RADSS, comp=comp, _RC)
     verbosity = 0 ! reset
@@ -107,8 +107,10 @@ module ATM
     call NUOPC_CompAttributeSet(comp, name="Verbosity", value="high", _RC)
 
 
-    !call NUOPC_DriverAddComp(driver,srcCOmpLabel="DYN",dstCompLabel="RAD",compsetServicesRoutine=cplSS,_RC)
-    !call NUOPC_DriverAddComp(driver,srcCOmpLabel="DYN",dstCompLabel="MOIST",compsetServicesRoutine=cplSS,_RC)
+    call NUOPC_DriverAddComp(driver,srcCOmpLabel="DYN",dstCompLabel="RAD",compsetServicesRoutine=cplSS,_RC)
+    call NUOPC_DriverAddComp(driver,srcCOmpLabel="DYN",dstCompLabel="MOIST",compsetServicesRoutine=cplSS,_RC)
+    call NUOPC_DriverAddComp(driver,srcCOmpLabel="RAD",dstCompLabel="DYN",compsetServicesRoutine=cplSS,_RC)
+    call NUOPC_DriverAddComp(driver,srcCOmpLabel="MOIST",dstCompLabel="DYN",compsetServicesRoutine=cplSS,_RC)
     call NUOPC_DriverAddComp(driver,srcCOmpLabel="RAD",dstCompLabel="MOIST",compsetServicesRoutine=cplSS,_RC)
     call NUOPC_DriverAddComp(driver,srcCOmpLabel="MOIST",dstCompLabel="RAD",compsetServicesRoutine=cplSS,_RC)
 
@@ -141,10 +143,10 @@ module ATM
 
     runSeqFF = NUOPC_FreeFormatCreate(stringList=(/ &
       " @*            ",    &
-      "   MOIST         ",    &
       "   MOIST -> RAD  ",    &
-      "   RAD         ",    &
+      "   MOIST         ",    &
       "   RAD -> MOIST  ",    &
+      "   RAD         ",    &
       " @             " /), &
       _RC)
 

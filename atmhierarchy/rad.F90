@@ -77,6 +77,11 @@ module RAD
        SharePolicyField="share", &
        SharePolicyGeomObject="share", & 
        _RC)
+    call NUOPC_Advertise(importState, StandardName="DYNEX", &
+       TransferOfferGeomObject="can provide", &
+       SharePolicyField="share", &
+       SharePolicyGeomObject="share", & 
+       _RC)
     call NUOPC_Advertise(exportState, StandardName="RADEX", &
        TransferOfferGeomObject="can provide", &
        SharePolicyField="share", &
@@ -108,6 +113,8 @@ module RAD
     grid = make_a_grid(_RC)
 
     call MAPL_realize_provided_field(importState,grid,"MOISTEX",_RC)
+
+    call MAPL_realize_provided_field(importState,grid,"DYNEX",_RC)
 
     call MAPL_realize_provided_field(exportState,grid,"RADEX",_RC)
 

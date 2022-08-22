@@ -40,6 +40,7 @@ program esmApp
   call NUOPC_FieldDictionaryAddEntry("MOISTEX", canonicalUnits="1", _RC)
   call NUOPC_FieldDictionaryAddEntry("RADEX", canonicalUnits="1", _RC)
   call NUOPC_FieldDictionaryAddEntry("BOBO", canonicalUnits="1", _RC)
+  call NUOPC_FieldDictionaryAddEntry("DYNEX", canonicalUnits="1", _RC)
 
   !-----------------------------------------------------------------------------
 
