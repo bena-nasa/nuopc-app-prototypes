@@ -32,6 +32,7 @@ module MAPL_redu
       call ESMF_StateGet(import, ITEMNAMELIST=item_names, ITEMTYPELIST=item_types, _RC)
       do i=1,item_count
          if (item_types(i) == ESMF_StateItem_Field) then
+            write(*,*)"trying to realize from import: ",trim(item_names(i))
             call ESMF_StateGet(import,field=field,itemname=item_names(i),_RC)
             call NUOPC_GetAttribute(field,name="ConsumerTransferOffer",value=transfer_action,_RC)
             if (transfer_action =="accept") then
@@ -45,9 +46,10 @@ module MAPL_redu
       call ESMF_StateGet(export, itemCount=item_count, _RC)
       allocate(item_names(item_count))
       allocate(item_types(item_count))
-      call ESMF_StateGet(import, ITEMNAMELIST=item_names, ITEMTYPELIST=item_types, _RC)
+      call ESMF_StateGet(export, ITEMNAMELIST=item_names, ITEMTYPELIST=item_types, _RC)
       do i=1,item_count
          if (item_types(i) == ESMF_StateItem_Field) then
+            write(*,*)"trying to realize from export: ",trim(item_names(i))
             call ESMF_StateGet(export,field=field,itemname=item_names(i),_RC)
             call NUOPC_GetAttribute(field,name="ProducerTransferOffer",value=transfer_action,_RC)
             if (transfer_action =="accept") then
