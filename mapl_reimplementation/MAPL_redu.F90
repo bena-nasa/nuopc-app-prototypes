@@ -80,6 +80,7 @@ module MAPL_redu
          search_for = "ConsumerTransferOffer"
       end if 
       call ESMF_StateGet(state,field=old_field,itemName=trim(name),_RC)
+      write(*,*)"Trying to realize a provided field: ",trim(name)
       call NUOPC_GetAttribute(old_field,name=trim(search_for), value=transfer_action,_RC)
       if (trim(transfer_action) == "provide") then
          write(*,*)"Found provided so realize: ",trim(name)
