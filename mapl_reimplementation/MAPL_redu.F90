@@ -37,6 +37,7 @@ module MAPL_redu
             call NUOPC_GetAttribute(field,name="ConsumerTransferOffer",value=transfer_action,_RC)
             if (transfer_action =="accept") then
                call NUOPC_Realize(import,fieldname=item_names(i),_RC)
+               write(*,*)"actually realized from import: ",trim(item_names(i))
             end if
          end if
       enddo
@@ -54,6 +55,7 @@ module MAPL_redu
             call NUOPC_GetAttribute(field,name="ProducerTransferOffer",value=transfer_action,_RC)
             if (transfer_action =="accept") then
                call NUOPC_Realize(export,fieldname=item_names(i),_RC)
+               write(*,*)"actually realized from export: ",trim(item_names(i))
             end if
          end if
       enddo
@@ -80,12 +82,13 @@ module MAPL_redu
       call ESMF_StateGet(state,field=old_field,itemName=trim(name),_RC)
       call NUOPC_GetAttribute(old_field,name=trim(search_for), value=transfer_action,_RC)
       if (trim(transfer_action) == "provide") then
+         write(*,*)"Found provided so realize: ",trim(name)
          if (present(lm)) then
             new_field = ESMF_FieldCreate(grid,ESMF_TYPEKIND_R4,name=trim(name),ungriddedLBound=[1],ungriddedUbound=[lm],_RC)
          else
             new_field = ESMF_FieldCreate(grid,ESMF_TYPEKIND_R4,name=trim(name),_RC)
          end if
-         call NUOPC_Realize(state,new_field,_RC)
+         call NUOPC_Realize(state,field=new_field,_RC)
       end if
    end subroutine
           
