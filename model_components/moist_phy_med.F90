@@ -1,6 +1,6 @@
 #include "error_handling.h"
 !==============================================================================
-! Earth System Modeling Framework
+! Earth System mediatoring Framework
 ! Copyright 2002-2022, University Corporation for Atmospheric Research,
 ! Massachusetts Institute of Technology, GeoMOISTsical Fluid Dynamics
 ! Laboratory, University of Michigan, National Centers for Environmental
@@ -32,35 +32,35 @@ module MOIST_TO_PHYS_MED
   contains
   !-----------------------------------------------------------------------------
 
-  subroutine SetServices(model, rc)
-    type(ESMF_GridComp)  :: model
+  subroutine SetServices(mediator, rc)
+    type(ESMF_GridComp)  :: mediator
     integer, intent(out) :: rc
 
     rc = ESMF_SUCCESS
 
-    ! derive from NUOPC_Model
-    call NUOPC_CompDerive(model, mediatorSS, _RC)
+    ! derive from NUOPC_mediator
+    call NUOPC_CompDerive(mediator, mediatorSS, _RC)
 
-    ! specialize model
-    call NUOPC_CompSpecialize(model, specLabel=label_Advertise, &
+    ! specialize mediator
+    call NUOPC_CompSpecialize(mediator, specLabel=label_Advertise, &
       specRoutine=Advertise, _RC)
-    call NUOPC_CompSpecialize(model, specLabel=label_RealizeProvided, &
+    call NUOPC_CompSpecialize(mediator, specLabel=label_RealizeProvided, &
       specRoutine=RealizeProvided, _RC)
-    call NUOPC_CompSpecialize(model, specLabel=label_RealizeAccepted, &
+    call NUOPC_CompSpecialize(mediator, specLabel=label_RealizeAccepted, &
       specRoutine=RealizeAccepted, _RC)
-    call NUOPC_CompSpecialize(model, specLabel=label_Advance, &
+    call NUOPC_CompSpecialize(mediator, specLabel=label_Advance, &
       specRoutine=Advance, _RC)
-    call NUOPC_CompSpecialize(model, specLabel=label_CheckImport, &
+    call NUOPC_CompSpecialize(mediator, specLabel=label_CheckImport, &
       specRoutine=NUOPC_NoOp, _RC)
-    call NUOPC_CompSpecialize(model, specLabel=label_TimestampExport, &
+    call NUOPC_CompSpecialize(mediator, specLabel=label_TimestampExport, &
       specRoutine=NUOPC_NoOp, _RC)
 
   end subroutine
 
   !-----------------------------------------------------------------------------
 
-  subroutine Advertise(model, rc) 
-    type(ESMF_GridComp)  :: model
+  subroutine Advertise(mediator, rc) 
+    type(ESMF_GridComp)  :: mediator
     integer, intent(out) :: rc
 
     ! local variables
@@ -76,7 +76,7 @@ module MOIST_TO_PHYS_MED
     call ESMF_ConfigGetAttribute(config,provide,Label="provide:",default="can provide",_RC)
 
     ! query for importState and exportState
-    call NUOPC_ModelGet(model, importState=importState, &
+    call NUOPC_mediatorGet(mediator, importState=importState, &
       exportState=exportState, _RC)
 
     call NUOPC_Advertise(exportState, StandardName="MOISTEX", &
@@ -110,8 +110,8 @@ module MOIST_TO_PHYS_MED
 
   !-----------------------------------------------------------------------------
 
-  subroutine RealizeProvided(model, rc)
-    type(ESMF_GridComp)  :: model
+  subroutine RealizeProvided(mediator, rc)
+    type(ESMF_GridComp)  :: mediator
     integer, intent(out) :: rc
 
     ! local variables
@@ -121,7 +121,7 @@ module MOIST_TO_PHYS_MED
     call print_message("RealizeProvided MOIST start")
     rc = ESMF_SUCCESS
 
-    call NUOPC_ModelGet(model, importState=importState, &
+    call NUOPC_mediatorGet(mediator, importState=importState, &
       exportState=exportState, _RC)
 
     grid = make_a_grid(config_file="moist_phy_med_input.rc",_RC)
@@ -133,8 +133,8 @@ module MOIST_TO_PHYS_MED
 
   end subroutine
 
-  subroutine RealizeAccepted(model, rc)
-    type(ESMF_GridComp)  :: model
+  subroutine RealizeAccepted(mediator, rc)
+    type(ESMF_GridComp)  :: mediator
     integer, intent(out) :: rc
 
     ! local variables
@@ -144,7 +144,7 @@ module MOIST_TO_PHYS_MED
     rc = ESMF_SUCCESS
 
     ! query for importState and exportState
-    call NUOPC_ModelGet(model, importState=importState, &
+    call NUOPC_mediatorGet(mediator, importState=importState, &
       exportState=exportState, _RC)
 
     call MAPL_realize_accepted(importState,exportState,_RC)
@@ -155,8 +155,8 @@ module MOIST_TO_PHYS_MED
 
   !-----------------------------------------------------------------------------
 
-  subroutine Advance(model, rc)
-    type(ESMF_GridComp)  :: model
+  subroutine Advance(mediator, rc)
+    type(ESMF_GridComp)  :: mediator
     integer, intent(out) :: rc
 
     ! local variables
@@ -173,10 +173,10 @@ module MOIST_TO_PHYS_MED
     rc = ESMF_SUCCESS
 
     ! query for clock, importState and exportState
-    call NUOPC_ModelGet(model, modelClock=clock, importState=importState, &
+    call NUOPC_mediatorGet(mediator, mediatorClock=clock, importState=importState, &
       exportState=exportState, _RC)
 
-    ! HERE THE MODEL ADVANCES: currTime -> currTime + timeStep
+    ! HERE THE mediator ADVANCES: currTime -> currTime + timeStep
 
     ! Because of the way that the internal Clock was set by default,
     ! its timeStep is equal to the parent timeStep. As a consequence the
