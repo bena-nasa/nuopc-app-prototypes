@@ -87,21 +87,25 @@ module my_error_handling
       call ESMF_StateGet(state,itemCount=nfields,_RC)
       allocate(fnames(nfields))
       call ESMF_StateGet(state,itemNameList=fnames,_RC)
-      write(*,*)"Printing addresses from: ",trim(message)
+      write(*,*)"Printing addresses and maxval from: ",trim(message)
       do i=1,nfields
          call ESMF_StateGet(state,trim(fnames(i)),field,_RC)
          call ESMF_FieldGet(field,rank=rank,typekind=typekind,_RC)
          if (typekind==ESMF_TYPEKIND_R4 .and. rank ==2) then
             call ESMF_FieldGet(field,0,farrayptr=ptr2d_r4,_RC)
+            write(*,'(A,A10,A,F)')" Maxval of field: ",trim(fnames(i))," is ",maxval(ptr2d_r4)
             base_address = c_loc(ptr2d_r4)
          else if (typekind==ESMF_TYPEKIND_R8 .and. rank ==2) then
             call ESMF_FieldGet(field,0,farrayptr=ptr2d_r8,_RC)
+            write(*,'(A,A10,A,F)')" Maxval of field: ",trim(fnames(i))," is ",maxval(ptr2d_r8)
             base_address = c_loc(ptr2d_r8)
          else if (typekind==ESMF_TYPEKIND_R4 .and. rank ==3) then
             call ESMF_FieldGet(field,0,farrayptr=ptr3d_r4,_RC)
+            write(*,'(A,A10,A,F)')" Maxval of field: ",trim(fnames(i))," is ",maxval(ptr3d_r4)
             base_address = c_loc(ptr3d_r4)
          else if (typekind==ESMF_TYPEKIND_R8 .and. rank ==3) then
             call ESMF_FieldGet(field,0,farrayptr=ptr3d_r8,_RC)
+            write(*,'(A,A10,A,F)')" Maxval of field: ",trim(fnames(i))," is ",maxval(ptr3d_r8)
             base_address = c_loc(ptr3d_r8)
          end if
          write(*,'(A,A10,A,I)')"Address of field: ",trim(fnames(i))," is ",transfer(base_address,0_C_INTPTR_T)

@@ -120,8 +120,8 @@ module MAPL_redu
       end if
       config = ESMF_ConfigCreate()
       call ESMF_ConfigLoadFile(config,filename=local_config_file,_RC)
-      call ESMF_ConfigGetAttribute(config,local_im,Label="IM:",default=100,_RC)
-      call ESMF_ConfigGetAttribute(config,local_jm,Label="JM:",default=100,_RC)
+      call ESMF_ConfigGetAttribute(config,local_im,Label="IM:",default=10,_RC)
+      call ESMF_ConfigGetAttribute(config,local_jm,Label="JM:",default=10,_RC)
       
       write(*,*)"creating grid from ",config_file," ",local_im,local_jm
       grid = ESMF_GridCreateNoPeriDimUfrm(maxIndex=[local_im,local_jm], &

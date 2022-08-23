@@ -161,7 +161,7 @@ module MOIST
     type(ESMF_StateItem_Flag)   :: itemType
     character(len=160)          :: msgString
     real(kind=ESMF_KIND_R4), pointer :: ptr3d(:,:,:)
-    real(kind=ESMF_KIND_R8), pointer :: ptr2d(:,:)
+    real(kind=ESMF_KIND_R4), pointer :: ptr2d(:,:)
 
     rc = ESMF_SUCCESS
 
@@ -184,8 +184,6 @@ module MOIST
       preString="---------------------> to: ", unit=msgString, _RC)
     call ESMF_LogWrite(msgString, ESMF_LOGMSG_INFO, _RC)
 
-    call print_pointer_address(exportState,"MOIST exp",_RC)
-    call print_pointer_address(importState,"MOIST imp",_RC)
     call ESMF_StateGet(exportState, itemName="BOBO",field=field, _RC)
     call ESMF_FieldGet(field,farrayPtr=ptr3d,_RC)
     ptr3d=step
@@ -193,6 +191,12 @@ module MOIST
     write(*,*)"Mr Burns bear BOBO turned this old in moist: ",maxval(ptr3d)
     write(*,*)"Mr Burns bear BOBO has this shape in moist: ",shape(ptr3d)
     call print_next_time(clock,"Advanced MOIST to: ")
+    call ESMF_StateGet(exportState, itemName="MOISTEX",field=field, _RC)
+    call ESMF_FieldGet(field,farrayPtr=ptr2d,_RC)
+    ptr2d = step*step
+
+    call print_pointer_address(exportState,"MOIST exp",_RC)
+    call print_pointer_address(importState,"MOIST imp",_RC)
 
   end subroutine
 

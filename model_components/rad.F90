@@ -162,13 +162,18 @@ module RAD
     type(ESMF_FileStatus_Flag)  :: status
     type(ESMF_StateItem_Flag)   :: itemType
     character(len=160)          :: msgString
-    real(KIND=ESMF_KIND_R8), pointer :: ptr2d(:,:)
+    real(KIND=ESMF_KIND_R4), pointer :: ptr2d(:,:)
 
     rc = ESMF_SUCCESS
 
     ! query for clock, importState and exportState
     call NUOPC_ModelGet(model, modelClock=clock, importState=importState, &
       exportState=exportState, _RC)
+
+    call ESMF_StateGet(exportState, itemName="RADEX",field=field, _RC)
+    call ESMF_FieldGet(field,farrayPtr=ptr2d,_RC)
+    ptr2d = step*step-1
+
     call print_pointer_address(exportState,"rad exp",_RC)
     call print_pointer_address(importState,"rad imp",_RC)
     
