@@ -91,25 +91,9 @@ module GEOSLIKE_PHYSICS
     call NUOPC_ModelGet(model, importState=importState, &
       exportState=exportState, _RC)
 
-    call ESMF_ConfigLoadFile(config,filename="physics_input.rc",_RC)
-    call ESMF_ConfigGetAttribute(config,share,Label="share:",default="share",_RC)
-    call ESMF_ConfigGetAttribute(config,provide,Label="provide:",default="can provide",_RC)
-
-    call NUOPC_Advertise(exportState, StandardName="MOISTEX", &
-       TransferOfferGeomObject=provide, &
-       SharePolicyField=share, &
-       SharePolicyGeomObject=share, &
-       _RC)
-    call NUOPC_Advertise(exportState, StandardName="BOBO", &
-       TransferOfferGeomObject=provide, &
-       SharePolicyField=share, &
-       SharePolicyGeomObject=share, &
-       _RC)
-
-    call NUOPC_Advertise(importState, StandardName="DYNEX", &
-       TransferOfferGeomObject=provide, &
-       SharePolicyField=share, &
-       SharePolic
+    !call ESMF_ConfigLoadFile(config,filename="physics_input.rc",_RC)
+    !call ESMF_ConfigGetAttribute(config,share,Label="share:",default="share",_RC)
+    !call ESMF_ConfigGetAttribute(config,provide,Label="provide:",default="can provide",_RC)
 
   end subroutine
 
