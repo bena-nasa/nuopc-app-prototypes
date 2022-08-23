@@ -67,6 +67,8 @@ module DYN
 
     ! local variables
     type(ESMF_State)        :: importState, exportState
+    type(ESMF_Config) :: config
+    character(len=ESMF_MAXSTR) :: share, provide
 
     call print_message("Advertise dyn start")
     rc = ESMF_SUCCESS
@@ -74,22 +76,26 @@ module DYN
     ! query for importState and exportState
     call NUOPC_ModelGet(model, importState=importState, &
       exportState=exportState, _RC)
+    config=ESMF_ConfigCreate()
+    call ESMF_ConfigLoadFile(config,filename="dyn_input.rc",_RC)
+    call ESMF_ConfigGetAttribute(config,share,Label="share:",default="share",_RC) 
+    call ESMF_ConfigGetAttribute(config,provide,Label="provide:",default="can provide",_RC)
 
     call NUOPC_Advertise(importState, StandardName="MOISTEX", &
-       TransferOfferGeomObject="can provide", &
-       SharePolicyField="share", &
-       SharePolicyGeomObject="share", &
+       TransferOfferGeomObject=provide, &
+       SharePolicyField=share, &
+       SharePolicyGeomObject=share, &
        _RC)
     call NUOPC_Advertise(importState, StandardName="BOBO", &
-       TransferOfferGeomObject="can provide", &
-       SharePolicyField="share", &
-       SharePolicyGeomObject="share", &
+       TransferOfferGeomObject=provide, &
+       SharePolicyField=share, &
+       SharePolicyGeomObject=share, &
        _RC)
 
     call NUOPC_Advertise(exportState, StandardName="DYNEX", &
-       TransferOfferGeomObject="can provide", &
-       SharePolicyField="share", &
-       SharePolicyGeomObject="share", &
+       TransferOfferGeomObject=provide, &
+       SharePolicyField=share, &
+       SharePolicyGeomObject=share, &
        _RC)
 
   call print_message("Advertise dyn end")
@@ -115,7 +121,7 @@ module DYN
       exportState=exportState, _RC)
 
     ! create a Grid object for Fields
-    grid = make_a_grid(_RC)
+    grid = make_a_grid(config_file='dyn_input.rc',_RC)
 
     call MAPL_realize_provided_field(importState,grid,"BOBO",lm=72,_RC)
     call MAPL_realize_provided_field(importState,grid,"MOISTEX",_RC)
@@ -231,7 +237,8 @@ module DYN
  
     call ESMF_StateGet(importState, itemName="BOBO", field=field, _RC)
     call ESMF_FieldGet(field,farrayPtr=ptr3d,_RC)
-    write(*,*)"Mr Burns bear BOBO is this old: ",maxval(ptr3d)
+    write(*,*)"Mr Burns bear BOBO is this old in dyn: ",maxval(ptr3d)
+    write(*,*)"Mr Burns bear BOBO has this shape in dyn: ",shape(ptr3d)
     step=step+1
     call print_next_time(clock,"Advanced Dyn to: ")
 

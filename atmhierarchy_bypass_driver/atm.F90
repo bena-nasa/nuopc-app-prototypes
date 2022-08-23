@@ -124,6 +124,8 @@ module ATM
     call NUOPC_DriverAddComp(driver,srcCOmpLabel="MOIST",dstCompLabel="DYN",compsetServicesRoutine=cplSS,comp=coupler,_RC)
     call NUOPC_DriverAddComp(driver,srcCOmpLabel="RAD",dstCompLabel="MOIST",compsetServicesRoutine=cplSS,comp=coupler,_RC)
     call NUOPC_DriverAddComp(driver,srcCOmpLabel="MOIST",dstCompLabel="RAD",compsetServicesRoutine=cplSS,comp=coupler,_RC)
+    !call NUOPC_DriverAddComp(driver,srcCOmpLabel="PHYSICS",dstCompLabel="DYN",compsetServicesRoutine=cplSS,comp=coupler,_RC)
+    !call NUOPC_DriverAddComp(driver,srcCOmpLabel="DYN",dstCompLabel="PHYSICS",compsetServicesRoutine=cplSS,comp=coupler,_RC)
 
     ! set the driver clock
     call ESMF_TimeIntervalSet(timeStep, m=15, _RC) ! 15 minute steps
@@ -153,10 +155,14 @@ module ATM
 
 
     runSeqFF = NUOPC_FreeFormatCreate(stringList=(/ &
-      " @*            ",    &
-      "   DYN ",    &
-      "   PHYSICS ",    &
-      " @             " /), &
+      " @*              ",    &
+      "   RAD -> DYN    ",    &
+      "   MOIST -> DYN  ",    &
+      "   DYN           ",    &
+      "   PHYSICS       ",    &
+      "   DYN -> RAD    ",    &
+      "   DYN -> MOIST  ",    &
+      " @               " /), &
       _RC)
 
     ! ingest FreeFormat run sequence
@@ -181,6 +187,7 @@ module ATM
     integer, intent(out) :: rc
 
     type(ESMF_GridComp) :: physics_gc, moist_gc, rad_gc
+    type(ESMF_CplComp) :: moist_to_rad, rad_to_moist
     type(physics_internal_wrapper) :: wrap
     type(physics_internal), pointer :: physics_int
 
@@ -190,11 +197,17 @@ module ATM
     call NUOPC_DriverGetComp(driver,"MOIST",comp=moist_gc,_RC)
     call NUOPC_DriverGetComp(driver,"RAD",comp=rad_gc,_RC)
 
+    call NUOPC_DriverGetComp(driver,"RAD","MOIST",comp=rad_to_moist,_RC)
+    call NUOPC_DriverGetComp(driver,"MOIST","RAD",comp=moist_to_rad,_RC)
+
     call ESMF_UserCompGetInternalState(physics_gc,'PHYSICS_INTERNAL',wrap,_RC)
     write(*,*)"Stuffing into physics internal!"
     physics_int => wrap%ptr
     physics_int%moist=moist_gc
     physics_int%rad=rad_gc
+
+    physics_int%rad_to_moist = rad_to_moist
+    physics_int%moist_to_rad = moist_to_rad
 
   end subroutine ModifyInitializePhaseMap
 

@@ -24,6 +24,7 @@ module MAPL_redu
       type (ESMF_StateItem_Flag), allocatable   :: item_types(:)
       character(len=ESMF_MAXSTR), allocatable   :: item_names(:)
       character(len=ESMF_MAXSTR) :: transfer_action
+      character(len=ESMF_MAXSTR) :: share_status_field
 
       ! first we do imports
       call ESMF_StateGet(import, itemCount=item_count, _RC)
@@ -34,7 +35,9 @@ module MAPL_redu
          if (item_types(i) == ESMF_StateItem_Field) then
             write(*,*)"trying to realize from import: ",trim(item_names(i))
             call ESMF_StateGet(import,field=field,itemname=item_names(i),_RC)
-            call NUOPC_GetAttribute(field,name="ConsumerTransferOffer",value=transfer_action,_RC)
+            call NUOPC_GetAttribute(field,name="ConsumerTransferAction",value=transfer_action,_RC)
+            call NUOPC_GetAttribute(field,name="ShareStatusField",value=share_status_field,_RC)
+            write(*,*)trim(item_names(i))," in import has ",trim(share_status_field),' ',trim(transfer_action)
             if (transfer_action =="accept") then
                call NUOPC_Realize(import,fieldname=item_names(i),_RC)
                write(*,*)"actually realized from import: ",trim(item_names(i))
@@ -52,7 +55,9 @@ module MAPL_redu
          if (item_types(i) == ESMF_StateItem_Field) then
             write(*,*)"trying to realize from export: ",trim(item_names(i))
             call ESMF_StateGet(export,field=field,itemname=item_names(i),_RC)
-            call NUOPC_GetAttribute(field,name="ProducerTransferOffer",value=transfer_action,_RC)
+            call NUOPC_GetAttribute(field,name="ProducerTransferAction",value=transfer_action,_RC)
+            call NUOPC_GetAttribute(field,name="ShareStatusField",value=share_status_field,_RC)
+            write(*,*)trim(item_names(i))," in export has ",trim(share_status_field),' ',trim(transfer_action)
             if (transfer_action =="accept") then
                call NUOPC_Realize(export,fieldname=item_names(i),_RC)
                write(*,*)"actually realized from export: ",trim(item_names(i))
@@ -69,20 +74,25 @@ module MAPL_redu
       integer, optional, intent(in) :: lm
       integer, optional, intent(out) :: rc
 
-      character(len=ESMF_MAXSTR) :: transfer_action,search_for
+      character(len=ESMF_MAXSTR) :: transfer_action,my_transfer_action
+      character(len=ESMF_MAXSTR) :: share_status_field 
       type(ESMF_Field) :: old_field,new_field
       type(ESMF_StateIntent_Flag) :: state_intent
 
       call ESMF_StateGet(state,stateIntent=state_intent,_RC)
       if (state_intent == ESMF_STATEINTENT_EXPORT) then
-         search_for = "ProducerTransferAction" 
+         my_transfer_action = "ProducerTransferAction" 
       else if (state_intent == ESMF_STATEINTENT_IMPORT) then
-         search_for = "ConsumerTransferAction"
-      end if 
+         my_transfer_action = "ConsumerTransferAction"
+      end if
+
+      !call NUOPC_GetAttribute(old_field,name="ShareStatusField",value=share_status_field,_RC)
+
       write(*,*)"Trying to realize a provided field: ",trim(name)
       call ESMF_StateGet(state,field=old_field,itemName=trim(name),_RC)
-      call NUOPC_GetAttribute(old_field,name=trim(search_for), value=transfer_action,_RC)
+      call NUOPC_GetAttribute(old_field,name=trim(my_transfer_action), value=transfer_action,_RC)
       write(*,*)"With transfer action: ",trim(transfer_action)
+      !write(*,*)"With share status: ",trim(share_status_field)
       if (trim(transfer_action) == "provide") then
          write(*,*)"Found provided so realize: ",trim(name)
          if (present(lm)) then
@@ -94,19 +104,26 @@ module MAPL_redu
       end if
    end subroutine
           
-   function make_a_grid(im,jm,rc) result(grid)
+   function make_a_grid(config_file,rc) result(grid)
       type(ESMF_Grid) :: grid
-      integer, intent(in), optional :: im
-      integer, intent(in), optional :: jm
+      character(len=*), optional :: config_file
       integer, intent(out), optional :: rc 
 
       integer :: local_im, local_jm
+      character(len=:), allocatable :: local_config_file
+      type(ESMF_Config) :: config
 
-      local_im = 100
-      local_jm = 100
-      if (present(im)) local_im=im
-      if (present(jm)) local_jm=jm
-
+      if (present(config_file)) then 
+         local_config_file=config_file
+      else
+         local_config_file="grid.rc"
+      end if
+      config = ESMF_ConfigCreate()
+      call ESMF_ConfigLoadFile(config,filename=local_config_file,_RC)
+      call ESMF_ConfigGetAttribute(config,local_im,Label="IM:",default=100,_RC)
+      call ESMF_ConfigGetAttribute(config,local_jm,Label="JM:",default=100,_RC)
+      
+      write(*,*)"creating grid from ",config_file," ",local_im,local_jm
       grid = ESMF_GridCreateNoPeriDimUfrm(maxIndex=[local_im,local_jm], &
       minCornerCoord=(/0._ESMF_KIND_R8, -50._ESMF_KIND_R8/), &
       maxCornerCoord=(/360._ESMF_KIND_R8, 90._ESMF_KIND_R8/), &

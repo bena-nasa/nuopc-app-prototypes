@@ -65,6 +65,8 @@ module RAD
 
     ! local variables
     type(ESMF_State)        :: importState, exportState
+    type(ESMF_Config) :: config
+    character(len=ESMF_MAXSTR) :: share,provide
 
     rc = ESMF_SUCCESS
 
@@ -72,20 +74,25 @@ module RAD
     call NUOPC_ModelGet(model, importState=importState, &
       exportState=exportState, _RC)
 
+    config=ESMF_ConfigCreate()
+    call ESMF_ConfigLoadFile(config,filename="rad_input.rc",_RC)
+    call ESMF_ConfigGetAttribute(config,share,Label="share:",default="share",_RC)
+    call ESMF_ConfigGetAttribute(config,provide,Label="provide:",default="can provide",_RC)
+
     call NUOPC_Advertise(importState, StandardName="MOISTEX", &
-       TransferOfferGeomObject="can provide", &
-       SharePolicyField="share", &
-       SharePolicyGeomObject="share", & 
+       TransferOfferGeomObject=provide, &
+       SharePolicyField=share, &
+       SharePolicyGeomObject=share, & 
        _RC)
     call NUOPC_Advertise(importState, StandardName="DYNEX", &
-       TransferOfferGeomObject="can provide", &
-       SharePolicyField="share", &
-       SharePolicyGeomObject="share", & 
+       TransferOfferGeomObject=provide, &
+       SharePolicyField=share, &
+       SharePolicyGeomObject=share, & 
        _RC)
     call NUOPC_Advertise(exportState, StandardName="RADEX", &
-       TransferOfferGeomObject="can provide", &
-       SharePolicyField="share", &
-       SharePolicyGeomObject="share", &
+       TransferOfferGeomObject=provide, &
+       SharePolicyField=share, &
+       SharePolicyGeomObject=share, &
        _RC)
 
     call print_message("Advertise Rad")
@@ -110,7 +117,7 @@ module RAD
       exportState=exportState, _RC)
 
     ! create a Grid object for Fields
-    grid = make_a_grid(_RC)
+    grid = make_a_grid(config_file="rad_input.rc",_RC)
 
     call MAPL_realize_provided_field(importState,grid,"MOISTEX",_RC)
 
