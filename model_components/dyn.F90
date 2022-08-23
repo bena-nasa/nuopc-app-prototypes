@@ -202,12 +202,15 @@ module DYN
 
     real(kind=ESMF_KIND_R4), pointer :: ptr3d(:,:,:)
     real(kind=ESMF_KIND_R8), pointer :: ptr2d(:,:)
+    integer :: my_phase
 
     rc = ESMF_SUCCESS
 
     ! query for clock, importState and exportState
     call NUOPC_ModelGet(model, modelClock=clock, importState=importState, &
       exportState=exportState, _RC)
+    call ESMF_GridCompGet(model,currentPhase=my_phase,_RC)
+    write(*,*)"Phase of Dyn is ",my_phase
 
     ! HERE THE MODEL ADVANCES: currTime -> currTime + timeStep
 

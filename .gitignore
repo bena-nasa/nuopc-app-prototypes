@@ -888,3 +888,4 @@ SingleModelProto/model.o
 /.mepo/
 *.py.bak
 CMakeUserPresets.json
+*.swp

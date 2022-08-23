@@ -191,6 +191,7 @@ module ATM
     call NUOPC_DriverGetComp(driver,"RAD",comp=rad_gc,_RC)
 
     call ESMF_UserCompGetInternalState(physics_gc,'PHYSICS_INTERNAL',wrap,_RC)
+    write(*,*)"Stuffing into physics internal!"
     physics_int => wrap%ptr
     physics_int%moist=moist_gc
     physics_int%rad=rad_gc
