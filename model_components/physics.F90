@@ -152,6 +152,7 @@ module PHYSICS
     type(physics_internal), pointer :: physics_int
     type(ESMF_State) :: moist_import,moist_export,rad_import,rad_export
     integer :: my_phase,user_rc,phase_index
+    character(len=ESMF_MAXSTR) :: phase_label
 
     rc = ESMF_SUCCESS
 
@@ -174,13 +175,10 @@ module PHYSICS
     write(*,*)"Phase of physics is ",my_phase
     call NUOPC_ModelGet(physics_int%moist,importState=moist_import,exportState=moist_export,_RC)
     call NUOPC_ModelGet(physics_int%rad,importState=rad_import,exportState=rad_export,_RC)
-    call NUOPC_CompSearchPhaseMap(physics_int%moist,ESMF_METHOD_RUN,internalflag=.false.,phaseLabel="ADVANCE",phaseIndex=phase_index,_RC)
-    write(*,*)"phase index of moist ",phase_index
-    call ESMF_GridCompRun(physics_int%moist,importState=moist_import,exportState=moist_export,phase=phase_index,userRc=user_rc,_RC)
+    phase_index = my_phase
+    call ESMF_GridCompRun(physics_int%moist,importState=moist_import,exportState=moist_export,clock=clock,phase=phase_index,userRc=user_rc,_RC)
     _VERIFY(user_rc)
-    call NUOPC_CompSearchPhaseMap(physics_int%rad,ESMF_METHOD_RUN,internalflag=.false.,phaseLabel="ADVANCE",phaseIndex=phase_index,_RC)
-    write(*,*)"phase index of rad ",phase_index
-    call ESMF_GridCompRun(physics_int%rad,importState=rad_import,exportState=rad_export,phase=phase_index,userRC=user_rc,_RC)
+    call ESMF_GridCompRun(physics_int%rad,importState=rad_import,exportState=rad_export,clock=clock,phase=phase_index,userRC=user_rc,_RC)
     _VERIFY(user_rc)
     call print_next_time(clock,"Advanced PHYSICS to: ")
 
