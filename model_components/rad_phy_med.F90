@@ -26,6 +26,9 @@ module RAD_TO_PHYS_MED
 
   private
 
+  type(ESMF_State), save :: radState
+  type(ESMF_State), save :: phyState
+
   public SetServices
 
   !-----------------------------------------------------------------------------
@@ -71,7 +74,7 @@ module RAD_TO_PHYS_MED
     rc = ESMF_SUCCESS
 
     config=ESMF_ConfigCreate()
-    call ESMF_ConfigLoadFile(config,filename="rad_phys_med_input.rc",_RC)
+    call ESMF_ConfigLoadFile(config,filename="rad_phy_med_input.rc",_RC)
     call ESMF_ConfigGetAttribute(config,share,Label="share:",default="share",_RC)
     call ESMF_ConfigGetAttribute(config,provide,Label="provide:",default="can provide",_RC)
 
@@ -79,18 +82,21 @@ module RAD_TO_PHYS_MED
     call NUOPC_MediatorGet(Mediator, importState=importState, &
       exportState=exportState, _RC)
 
-    call NUOPC_Advertise(importState, StandardName="DYNEX", &
+    call NUOPC_AddNamespace(exportState,namespace="RAD",nestedState=radState,_RC)
+    call NUOPC_AddNamespace(importState,namespace="PHY",nestedState=phyState,_RC)
+
+    call NUOPC_Advertise(radState, StandardName="DYNEX", &
        TransferOfferGeomObject=provide, &
        SharePolicyField=share, &
        SharePolicyGeomObject=share, &
        _RC)
-    call NUOPC_Advertise(exportState, StandardName="DYNEX", &
+    call NUOPC_Advertise(phyState, StandardName="DYNEX", &
        TransferOfferGeomObject=provide, &
        SharePolicyField=share, &
        SharePolicyGeomObject=share, &
        _RC)
 
-    call NUOPC_SetAttribute(importState,"FieldTransferPolicy","transferAll",_RC)
+    !call NUOPC_SetAttribute(importState,"FieldTransferPolicy","transferAll",_RC)
 
     call print_message("Advertise MOIST")
 
@@ -114,7 +120,8 @@ module RAD_TO_PHYS_MED
 
     grid = make_a_grid(config_file="rad_phy_med_input.rc",_RC)
 
-    call MAPL_realize_provided_field(importState,grid,"DYNEX",_RC)
+    call MAPL_realize_provided_field(phyState,grid,"DYNEX",_RC)
+    call MAPL_realize_provided_field(radState,grid,"DYNEX",_RC)
     call print_message("RealizeProvided MOIST end")
 
   end subroutine
@@ -133,7 +140,7 @@ module RAD_TO_PHYS_MED
     call NUOPC_MediatorGet(Mediator, importState=importState, &
       exportState=exportState, _RC)
 
-    call MAPL_realize_accepted(importState,exportState,_RC)
+    call MAPL_realize_accepted(phyState,radState,_RC)
 
     call print_message("RealizeAccpted MOIST end")
 
@@ -148,13 +155,10 @@ module RAD_TO_PHYS_MED
     ! local variables
     type(ESMF_Clock)            :: clock
     type(ESMF_State)            :: importState, exportState
-    integer, save               :: step=1
-    type(ESMF_Field)            :: field
     type(ESMF_FileStatus_Flag)  :: status
-    type(ESMF_StateItem_Flag)   :: itemType
+    type(ESMF_Field)            :: field
     character(len=160)          :: msgString
-    real(kind=ESMF_KIND_R4), pointer :: ptr3d(:,:,:)
-    real(kind=ESMF_KIND_R4), pointer :: ptr2d(:,:)
+    real(kind=ESMF_KIND_R4), pointer :: ptr2d_ex(:,:),ptr2d_im(:,:)
 
     rc = ESMF_SUCCESS
 
@@ -162,34 +166,14 @@ module RAD_TO_PHYS_MED
     call NUOPC_MediatorGet(Mediator, MediatorClock=clock, importState=importState, &
       exportState=exportState, _RC)
 
-    ! HERE THE Mediator ADVANCES: currTime -> currTime + timeStep
+    call ESMF_StateGet(phyState,itemname="DYNEX",field=field,_RC)
+    call ESMF_FieldGet(field,farrayPtr=ptr2d_im,_RC)
+    call ESMF_StateGet(radState,itemname="DYNEX",field=field,_RC)
+    call ESMF_FieldGet(field,farrayPtr=ptr2d_ex,_RC)
+    ptr2d_ex=ptr2d_im
 
-    ! Because of the way that the internal Clock was set by default,
-    ! its timeStep is equal to the parent timeStep. As a consequence the
-    ! currTime + timeStep is equal to the stopTime of the internal Clock
-    ! for this call of the Advance() routine.
-
-    call ESMF_ClockPrint(clock, options="currTime", &
-      preString="------>Advancing MOIST from: ", unit=msgString, _RC)
-    call ESMF_LogWrite(msgString, ESMF_LOGMSG_INFO, _RC)
-
-    call ESMF_ClockPrint(clock, options="stopTime", &
-      preString="---------------------> to: ", unit=msgString, _RC)
-    call ESMF_LogWrite(msgString, ESMF_LOGMSG_INFO, _RC)
-
-    call ESMF_StateGet(exportState, itemName="BOBO",field=field, _RC)
-    call ESMF_FieldGet(field,farrayPtr=ptr3d,_RC)
-    ptr3d=step
-    step=step+1
-    write(*,*)"Mr Burns bear BOBO turned this old in moist: ",maxval(ptr3d)
-    write(*,*)"Mr Burns bear BOBO has this shape in moist: ",shape(ptr3d)
-    call print_next_time(clock,"Advanced MOIST to: ")
-    call ESMF_StateGet(exportState, itemName="MOISTEX",field=field, _RC)
-    call ESMF_FieldGet(field,farrayPtr=ptr2d,_RC)
-    ptr2d = step*step
-
-    call print_pointer_address(exportState,"MOIST exp",_RC)
-    call print_pointer_address(importState,"MOIST imp",_RC)
+    call print_pointer_address(exportState,"RAD_PHYS_MED exp",_RC)
+    call print_pointer_address(importState,"RAD_PHYS_MED imp",_RC)
 
   end subroutine
 

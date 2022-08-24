@@ -84,16 +84,38 @@ module GEOSLIKE_PHYSICS
 
     ! local variables
     type(ESMF_State)        :: importState, exportState
+    type(ESMF_Config) :: config
+    character(len=ESMF_MAXSTR) :: share, provide
 
+    call print_message("Advertise GEOSLIKE_PHYSICS start")
     rc = ESMF_SUCCESS
 
     ! query for importState and exportState
     call NUOPC_ModelGet(model, importState=importState, &
       exportState=exportState, _RC)
+    config=ESMF_ConfigCreate()
+    call ESMF_ConfigLoadFile(config,filename="dyn_input.rc",_RC)
+    call ESMF_ConfigGetAttribute(config,share,Label="share:",default="share",_RC)
+    call ESMF_ConfigGetAttribute(config,provide,Label="provide:",default="can provide",_RC)
 
-    !call ESMF_ConfigLoadFile(config,filename="physics_input.rc",_RC)
-    !call ESMF_ConfigGetAttribute(config,share,Label="share:",default="share",_RC)
-    !call ESMF_ConfigGetAttribute(config,provide,Label="provide:",default="can provide",_RC)
+    call NUOPC_Advertise(exportState, StandardName="MOISTEX", &
+       TransferOfferGeomObject=provide, &
+       SharePolicyField=share, &
+       SharePolicyGeomObject=share, &
+       _RC)
+    call NUOPC_Advertise(exportState, StandardName="BOBO", &
+       TransferOfferGeomObject=provide, &
+       SharePolicyField=share, &
+       SharePolicyGeomObject=share, &
+       _RC)
+
+    call NUOPC_Advertise(importState, StandardName="DYNEX", &
+       TransferOfferGeomObject=provide, &
+       SharePolicyField=share, &
+       SharePolicyGeomObject=share, &
+       _RC)
+
+  call print_message("Advertise GEOSLIKE_PHSYICS end")
 
   end subroutine
 
@@ -107,19 +129,19 @@ module GEOSLIKE_PHYSICS
     type(ESMF_State)          :: importState, exportState
     type(ESMF_Grid)           :: grid
 
-    call print_message("RealizeProvided PHYSICS start")
+    call print_message("RealizeProvided GEOSLIKE_PHYSICS start")
     rc = ESMF_SUCCESS
 
     call NUOPC_ModelGet(model, importState=importState, &
       exportState=exportState, _RC)
 
-    grid = make_a_grid(config_file="physics_input.rc",_RC)
+    grid = make_a_grid(config_file="geoslike-physics_input.rc",_RC)
 
     call MAPL_realize_provided_field(exportState,grid,"BOBO",lm=72,_RC)
     call MAPL_realize_provided_field(exportState,grid,"MOISTEX",_RC)
     call MAPL_realize_provided_field(importState,grid,"DYNEX",_RC)
 
-    call print_message("RealizeProvided PHYSICS end")
+    call print_message("RealizeProvided GEOSLIKE_PHYSICS end")
 
   end subroutine
 
@@ -130,7 +152,7 @@ module GEOSLIKE_PHYSICS
     ! local variables
     type(ESMF_State)          :: importState, exportState
 
-    call print_message("RealizeAccepted PHYSICS start")
+    call print_message("RealizeAccepted GEOSLIKE_PHYSICS start")
     rc = ESMF_SUCCESS
 
     ! query for importState and exportState
@@ -139,7 +161,7 @@ module GEOSLIKE_PHYSICS
 
     call MAPL_realize_accepted(importState,exportState,_RC)
 
-    call print_message("RealizeAccpted PHYSICS end")
+    call print_message("RealizeAccpted GEOSLIKE_PHYSICS end")
 
   end subroutine
 

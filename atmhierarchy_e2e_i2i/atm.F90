@@ -24,7 +24,9 @@ module ATM
   use DYN, only: DYNSS => SetServices
   use RAD, only: RADSS => SetServices
   use MOIST, only: MOISTSS => SetServices
-  USE PHYSICS, only: physics_internal, physics_internal_wrapper, PHYSICSSS => SetServices
+  USE GEOSLIKE_PHYSICS, only: physics_internal, physics_internal_wrapper, PHYSICSSS => SetServices
+  use RAD_TO_PHYS_MED, only: rad_to_phy_ss => SetServices
+  use MOIST_TO_PHYS_MED, only: moist_to_phy_ss => SetServices
 
   use NUOPC_Connector, only: cplSS => SetServices
 
@@ -88,6 +90,7 @@ module ATM
     ! get the petCount
     call ESMF_GridCompGet(driver, petCount=petCount, _RC)
 
+
     call NUOPC_DriverAddComp(driver, "DYN", DYNSS,  comp=comp, _RC)
     verbosity = 0 ! reset
     verbosity = ibset(verbosity,0)  ! log basic intro/extro and indentation
@@ -118,14 +121,35 @@ module ATM
     write(vstring,"(i10)") verbosity
     call nuopc_compattributeset(comp, name="verbosity", value="high", _RC)
 
-    call NUOPC_DriverAddComp(driver,srcCOmpLabel="DYN",dstCompLabel="RAD",compsetServicesRoutine=cplSS,comp=coupler,_RC)
-    call NUOPC_DriverAddComp(driver,srcCOmpLabel="DYN",dstCompLabel="MOIST",compsetServicesRoutine=cplSS,comp=coupler,_RC)
-    call NUOPC_DriverAddComp(driver,srcCOmpLabel="RAD",dstCompLabel="DYN",compsetServicesRoutine=cplSS,comp=coupler,_RC)
-    call NUOPC_DriverAddComp(driver,srcCOmpLabel="MOIST",dstCompLabel="DYN",compsetServicesRoutine=cplSS,comp=coupler,_RC)
+    call nuopc_driveraddcomp(driver, "RAD_TO_PHY", rad_to_phy_ss, comp=comp, _RC)
+    verbosity = 0 ! reset
+    verbosity = ibset(verbosity,0)  ! log basic intro/extro and indentation
+    verbosity = ibset(verbosity,9)  ! log info run phase
+    write(vstring,"(i10)") verbosity
+    call nuopc_compattributeset(comp, name="verbosity", value="high", _RC)
+
+    call nuopc_driveraddcomp(driver, "MOIST_TO_PHY", moist_to_phy_ss, comp=comp, _RC)
+    verbosity = 0 ! reset
+    verbosity = ibset(verbosity,0)  ! log basic intro/extro and indentation
+    verbosity = ibset(verbosity,9)  ! log info run phase
+    write(vstring,"(i10)") verbosity
+    call nuopc_compattributeset(comp, name="verbosity", value="high", _RC)
+
     call NUOPC_DriverAddComp(driver,srcCOmpLabel="RAD",dstCompLabel="MOIST",compsetServicesRoutine=cplSS,comp=coupler,_RC)
     call NUOPC_DriverAddComp(driver,srcCOmpLabel="MOIST",dstCompLabel="RAD",compsetServicesRoutine=cplSS,comp=coupler,_RC)
     call NUOPC_DriverAddComp(driver,srcCOmpLabel="PHYSICS",dstCompLabel="DYN",compsetServicesRoutine=cplSS,comp=coupler,_RC)
     call NUOPC_DriverAddComp(driver,srcCOmpLabel="DYN",dstCompLabel="PHYSICS",compsetServicesRoutine=cplSS,comp=coupler,_RC)
+
+    call NUOPC_DriverAddComp(driver,srcCOmpLabel="MOIST_TO_PHY",dstCompLabel="PHYSICS",compsetServicesRoutine=cplSS,comp=coupler,_RC)
+    call NUOPC_DriverAddComp(driver,srcCOmpLabel="RAD_TO_PHY",dstCompLabel="PHYSICS",compsetServicesRoutine=cplSS,comp=coupler,_RC)
+    call NUOPC_DriverAddComp(driver,srcCOmpLabel="PHYSICS",dstCompLabel="MOIST_TO_PHY",compsetServicesRoutine=cplSS,comp=coupler,_RC)
+    call NUOPC_DriverAddComp(driver,srcCOmpLabel="PHYSICS",dstCompLabel="RAD_TO_PHY",compsetServicesRoutine=cplSS,comp=coupler,_RC)
+   
+    call NUOPC_DriverAddComp(driver,srcCOmpLabel="MOIST_TO_PHY",dstCompLabel="MOIST",compsetServicesRoutine=cplSS,comp=coupler,_RC)
+    call NUOPC_DriverAddComp(driver,srcCOmpLabel="RAD_TO_PHY",dstCompLabel="RAD",compsetServicesRoutine=cplSS,comp=coupler,_RC)
+    call NUOPC_DriverAddComp(driver,srcCOmpLabel="MOIST",dstCompLabel="MOIST_TO_PHY",compsetServicesRoutine=cplSS,comp=coupler,_RC)
+    call NUOPC_DriverAddComp(driver,srcCOmpLabel="RAD",dstCompLabel="RAD_TO_PHY",compsetServicesRoutine=cplSS,comp=coupler,_RC)
+   
 
     ! set the driver clock
     call ESMF_TimeIntervalSet(timeStep, m=15, _RC) ! 15 minute steps
@@ -155,14 +179,22 @@ module ATM
 
 
     runSeqFF = NUOPC_FreeFormatCreate(stringList=(/ &
-      " @*              ",    &
-      "   RAD -> DYN    ",    &
-      "   MOIST -> DYN  ",    &
-      "   DYN           ",    &
-      "   PHYSICS       ",    &
-      "   DYN -> RAD    ",    &
-      "   DYN -> MOIST  ",    &
-      " @               " /), &
+      " @*                        ", &
+      "   PHYSICS -> DYN          ", &
+      "   DYN                     ", &
+      "   DYN -> PHYSICS          ", &
+      "   PHYSICS                 ", &
+      "   PHYSICS -> MOIST_TO_PHY ", &
+      "   PHYSICS -> RAD_TO_PHY   ", &
+      "   MOIST_TO_PHY            ", &
+      "   RAD_TO_PHY              ", &
+      "   MOIST_TO_PHY -> PHYSICS ", &
+      "   RAD_TO_PHY -> PHYSICS   ", &
+      "   MOIST -> MOIST_TO_PHY   ", &
+      "   MOIST_TO_PHY -> MOIST   ", &
+      "   RAD -> RAD_TO_PHY       ", &
+      "   RAD_TO_PHY -> RAD       ", &
+      " @                         " /), &
       _RC)
 
     ! ingest FreeFormat run sequence

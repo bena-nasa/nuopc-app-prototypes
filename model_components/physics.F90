@@ -191,6 +191,9 @@ module PHYSICS
     call ESMF_GridCompRun(physics_int%rad,importState=rad_import,exportState=rad_export,clock=clock,phase=phase_index,userRC=user_rc,_RC)
     _VERIFY(user_rc)
 
+    call print_pointer_address(exportState,"PHYSICS exp",_RC)
+    call print_pointer_address(importState,"PHYSICS imp",_RC)
+
     call print_next_time(clock,"Advanced PHYSICS to: ")
 
   end subroutine
